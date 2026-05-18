@@ -1,0 +1,15 @@
+# --- DATA CACHES ---
+*.db
+
+# --- VIRTUAL ENVS ---
+venv/
+.venv/
+
+# --- PYTHON RUNTIMES ---
+__pycache__/
+*.pyc
+
+# --- EDITOR SETTINGS ---
+.vscode/
+.idea/
+.DS_Store

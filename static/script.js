@@ -2,64 +2,132 @@ const dictionary = {
     az: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diaqnostik Giriş Sistemi", inputSub: "Simptomlarınızı sərbəst şəkildə yazın:",
         placeholder: "Məsələn: Qəfil sinə ağrısı başladı, nəfəs almaq çətindir...", checkboxText: "Bunun rəsmi tibbi məsləhət olmadığını və bir AI simulyasiyası olduğunu anlayıram.",
-        btnText: "Təhlil Et & AI Xəritəni Qur", btnLoading: "Mövqe Təyin Edilir və AI Xəritə Qurulur...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (112) zəng edin.",
-        outputHeading: "Klinik Qiymətləndirmə Paneli", lblReason: "Səbəb:", lblSpecialist: "Məsləhət Görülən Həkim:", facilitiesHeading: "AI Regional Tibb Obyektləri", mapHeading: "Nativ İnteraktiv AI Xəritə Paneli",
-        statusRed: "🔴 TƏCİLİ - Qırmızı Status", statusYellow: "🟡 VACİB - Sarı Status", statusGreen: "🟢 Stabil - Yaşıl Status", erOpen: "🔴 24/7 Təcili Yardım Var", erClosed: "⏰ Yalnız İş Saatları", kmAway: "km (AI Təxmini)",
-        locBaku: "📍 Mövqe Sinxronizasiyası Aktivdir: Hazırkı qlobal mövqeyiniz izlənilir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart şəhər koordinatları aktivdir."
+        btnText: "Təhlil Et & Xəritəni Qur", btnLoading: "Simptomlar tehlil olunur ve yaxın tibb məntəqələri siyahısı yüklənir...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (112) zəng edin.",
+        outputHeading: "Klinik Qiymətləndirmə Paneli", lblReason: "Səbəb:", lblSpecialist: "Məsləhət Görülən Həkim:", facilitiesHeading: "Yaxın Hospitals/Klinikalar (Təkliflər)", mapHeading: "OpenStreetMap - İnteraktiv Xəritə",
+        statusRed: "🔴 TƏCİLİ - Qırmızı Status", statusYellow: "🟡 VACİB - Sarı Status", statusGreen: "🟢 Stabil - Yaşıl Status", erOpen: "🔴 24/7 Təcili Yardım Var", erClosed: "⏰ Yalnız İş Saatları", kmAway: "km",
+        locActive: "📍 Mövqe sinxronizasiyası aktivdir. Hazırkı mövqeyiniz yüklənir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart koordinatlara geri dönüldü."
     },
     en: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diagnostic Input Engine", inputSub: "Describe your symptoms in plain language:",
         placeholder: "Example: Experiencing sudden sharp chest pain and tightness...", checkboxText: "I understand this is an AI hackathon simulation and not official medical advice.",
-        btnText: "Analyze Status & Render AI Map", btnLoading: "Syncing GPS and generating AI vectors...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 112 immediately.",
-        outputHeading: "Clinical Assessment Dashboard", lblReason: "Clinical Reason:", lblSpecialist: "Direct Route Referral:", facilitiesHeading: "AI Generated Regional Facilities", mapHeading: "Native Interactive AI Map Canvas",
-        statusRed: "RED EMERGENCY CARE STATUS", statusYellow: "YELLOW URGENT DISPATCH REQUIRED", statusGreen: "GREEN LOW URGENCY PROFILE", erOpen: "🔴 Emergency Services Operational", erClosed: "⏰ Clinic Hours Apply", kmAway: "km (AI Estimated)",
-        locBaku: "📍 Location Sync Active: Your real-time position is tracked.", locDenied: "🔒 Geolocation blocked. Running fallback town baseline."
+        btnText: "Analyze & Load Map", btnLoading: "Analyzing symptoms and loading nearby medical facilities' list...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 112 immediately.",
+        outputHeading: "Clinical Assessment Dashboard", lblReason: "Clinical Reason:", lblSpecialist: "Direct Route Referral:", facilitiesHeading: "Nearby Hospitals/Clinics (Suggested)", mapHeading: "OpenStreetMap - Interactive Map",
+        statusRed: "RED EMERGENCY CARE STATUS", statusYellow: "YELLOW URGENT DISPATCH REQUIRED", statusGreen: "GREEN LOW URGENCY PROFILE", erOpen: "🔴 Emergency Services Operational", erClosed: "⏰ Clinic Hours Apply", kmAway: "km",
+        locActive: "📍 Location sync active: your current position is being used.", locDenied: "🔒 Geolocation blocked. Fallback coordinates are active."
     },
     ru: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Система Диагностики", inputSub: "Опишите ваши симптомы в свободной форме:",
         placeholder: "Например: Началась внезапная острая боль в груди, трудно дышать...", checkboxText: "Я понимаю, что это симуляция AI для хакатона и не является официальной медицинской консультацией.",
-        btnText: "Анализировать и Создать AI Карту", btnLoading: "Синхронизация GPS и расчет AI карт...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 112.",
-        outputHeading: "Панель Клинической Оценки", lblReason: "Причина:", lblSpecialist: "Рекомендуемый Специалист:", facilitiesHeading: "Объекты, Сгенерированные AI", mapHeading: "Интерактивный AI Холст Карты",
-        statusRed: "🔴 СРОЧНО - Красный Статус", statusYellow: "🟡 ВНИМАНИЕ - Желтый Статус", statusGreen: "🟢 Стабильно - Зеленый Статус", erOpen: "🔴 Есть Экстренная Помощь", erClosed: "⏰ Только в рабочие часы", kmAway: "км (Расчет AI)",
-        locBaku: "📍 Геопозиция Синхронизирована: Живое отслеживание активно.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты."
+        btnText: "Анализировать & Загрузить Карту", btnLoading: "Анализ симптомов и загрузка списка ближайших медицинских учреждений...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 112.",
+        outputHeading: "Панель Клинической Оценки", lblReason: "Причина:", lblSpecialist: "Рекомендуемый Специалист:", facilitiesHeading: "Ближайшие Больницы/Клиники (Рекомендации)", mapHeading: "OpenStreetMap - Интерактивная Карта",
+        statusRed: "🔴 СРОЧНО - Красный Статус", statusYellow: "🟡 ВНИМАНИЕ - Желтый Статус", statusGreen: "🟢 Стабильно - Зеленый Статус", erOpen: "🔴 Есть Экстренная Помощь", erClosed: "⏰ Только в рабочие часы", kmAway: "км",
+        locActive: "📍 Геопозиция синхронизирована: используется ваше текущее положение.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты."
     }
 };
 
 let lastServerResponse = null;
 let hardwareLat = 40.3700; 
 let hardwareLng = 49.8372;
+let lastPositions = [];
+let lastAccuracy = null;
+let accuracyCircle = null;
+let osmMap = null;
+let hospitalMarkers = [];
+let userMarker = null;
+let watchId = null;
 
 window.addEventListener('load', () => {
+    initializeOSMMap();
+    
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                hardwareLat = pos.coords.latitude;
-                hardwareLng = pos.coords.longitude;
-                updateAdvisorAlertStatus("locBaku");
-                renderBlankGridOnCanvas();
-            },
-            () => {
-                updateAdvisorAlertStatus("locDenied");
-                renderBlankGridOnCanvas();
-            }
-        );
+        startGeolocationWatch();
     } else {
         updateAdvisorAlertStatus("locDenied");
-        renderBlankGridOnCanvas();
+        initializeOSMMap();
     }
     switchLanguageInterface();
 });
 
-function updateAdvisorAlertStatus(key) {
+function initializeOSMMap() {
+    const mapContainer = document.getElementById('osmMap');
+    if (!mapContainer || osmMap) return;
+    
+    // Initialize Leaflet map centered on user location
+    osmMap = L.map('osmMap').setView([hardwareLat, hardwareLng], 13);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(osmMap);
+    
+    // Add user location marker
+    userMarker = L.circleMarker([hardwareLat, hardwareLng], {
+        radius: 10,
+        fillColor: "#3b82f6",
+        color: "#ffffff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+    }).addTo(osmMap).bindPopup("📍 Your Location");
+}
+
+function updateMapCenter(lat, lng) {
+    if (!osmMap) {
+        initializeOSMMap();
+    }
+    osmMap.setView([lat, lng], 13);
+    if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+    } else {
+        userMarker = L.circleMarker([lat, lng], {
+            radius: 10,
+            fillColor: "#3b82f6",
+            color: "#ffffff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(osmMap).bindPopup("📍 Your Location");
+    }
+}
+
+function startGeolocationWatch() {
+    if (!navigator.geolocation) {
+        updateAdvisorAlertStatus("locDenied");
+        return;
+    }
+
+    watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+            handleNewPosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+        },
+        () => {
+            updateAdvisorAlertStatus("locDenied");
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+}
+
+function clearHospitalMarkers() {
+    hospitalMarkers.forEach(marker => osmMap.removeLayer(marker));
+    hospitalMarkers = [];
+}
+
+function updateAdvisorAlertStatus(key, lat, lng) {
     const lang = document.getElementById('langSheet').value;
     const banner = document.getElementById('locationAdvisor');
     if (banner) {
-        banner.innerHTML = dictionary[lang][key];
+        let message = dictionary[lang][key] || '';
+        banner.innerHTML = message;
         banner.setAttribute('data-loc-state', key);
-        if (key === 'locBaku') {
-            banner.style.background = "#f0fdf4"; banner.style.borderColor = "#bbf7d0"; banner.style.color = "#166534";
+        if (key === 'locActive') {
+            banner.style.background = "#f0fdf4";
+            banner.style.borderColor = "#bbf7d0";
+            banner.style.color = "#166534";
         } else {
-            banner.style.background = "#f8fafc"; banner.style.borderColor = "#cbd5e1"; banner.style.color = "#475569";
+            banner.style.background = "#f8fafc";
+            banner.style.borderColor = "#cbd5e1";
+            banner.style.color = "#475569";
         }
     }
 }
@@ -73,6 +141,7 @@ function switchLanguageInterface() {
     document.getElementById('inputSub').innerText = dict.inputSub;
     document.getElementById('symptomsInput').placeholder = dict.placeholder;
     document.getElementById('checkboxText').innerText = dict.checkboxText;
+    
     document.getElementById('submitBtn').innerText = dict.btnText;
     document.getElementById('disclaimerText').innerHTML = dict.disclaimer;
     document.getElementById('outputHeading').innerText = dict.outputHeading;
@@ -83,8 +152,8 @@ function switchLanguageInterface() {
 
     const banner = document.getElementById('locationAdvisor');
     if (banner) {
-        const currentStateKey = banner.getAttribute('data-loc-state') || "locBaku";
-        updateAdvisorAlertStatus(currentStateKey);
+        const currentStateKey = banner.getAttribute('data-loc-state') || "locActive";
+        updateAdvisorAlertStatus(currentStateKey, hardwareLat, hardwareLng);
     }
 
     if (lastServerResponse) {
@@ -101,40 +170,103 @@ function runTriagePipeline() {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.innerText = dictionary[lang].btnLoading;
 
-    // Fast configuration setup ensuring async timing safety bounds
-    const payloadBody = {
-        symptoms: symptoms,
-        latitude: typeof hardwareLat !== 'undefined' ? hardwareLat : 40.3700,
-        longitude: typeof hardwareLng !== 'undefined' ? hardwareLng : 49.8372
+    const submitData = () => {
+        const payloadBody = {
+            symptoms: symptoms,
+            latitude: typeof hardwareLat !== 'undefined' ? hardwareLat : 40.3700,
+            longitude: typeof hardwareLng !== 'undefined' ? hardwareLng : 49.8372
+        };
+            
+
+        fetch('/api/triage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payloadBody)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP error: " + res.status);
+            return res.json();
+        })
+        .then(payload => {
+            if (payload.status === 'success') {
+                lastServerResponse = payload.data;
+                updateOutputUIValues(payload.data, lang);
+            } else {
+                alert('AI Core Route Fault: ' + payload.message);
+            }
+        })
+        .catch(err => {
+            console.warn("Handshake exception bypassed:", err);
+            alert("Server network sync delay. Please try clicking the button again.");
+        })
+        .finally(() => {
+            btn.disabled = false; btn.innerText = dictionary[lang].btnText;
+        });
     };
 
-    fetch('/api/triage', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(payloadBody)
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("HTTP error: " + res.status);
-        return res.json();
-    })
-    .then(payload => {
-        if (payload.status === 'success') {
-            lastServerResponse = payload.data;
-            updateOutputUIValues(payload.data, lang);
-        } else {
-            alert('AI Core Route Fault: ' + payload.message);
-        }
-    })
-    .catch(err => {
-        console.warn("Handshake exception bypassed:", err);
-        alert("Server network sync delay. Please try clicking the button again.");
-    })
-    .finally(() => { 
-        btn.disabled = false; btn.innerText = dictionary[lang].btnText; 
-    });
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                handleNewPosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                submitData();
+            },
+            () => {
+                submitData();
+            },
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+        );
+    } else {
+        submitData();
+    }
+}
+
+function median(values){
+    if (!values.length) return null;
+    const sorted = values.slice().sort((a,b)=>a-b);
+    const mid = Math.floor(sorted.length/2);
+    if (sorted.length % 2) return sorted[mid];
+    return (sorted[mid-1] + sorted[mid]) / 2.0;
+}
+
+function handleNewPosition(lat, lng, accuracy) {
+    // keep a short rolling window of recent positions
+    lastPositions.push([lat, lng]);
+    if (lastPositions.length > 9) lastPositions.shift();
+
+    const lats = lastPositions.map(p => p[0]);
+    const lngs = lastPositions.map(p => p[1]);
+
+    // median filter reduces occasional spikes
+    const medLat = median(lats);
+    const medLng = median(lngs);
+
+    // fallback to mean if median is null
+    const avgLat = lats.reduce((a,b)=>a+b,0)/lats.length;
+    const avgLng = lngs.reduce((a,b)=>a+b,0)/lngs.length;
+
+    hardwareLat = parseFloat((medLat !== null ? medLat : avgLat).toFixed(6));
+    hardwareLng = parseFloat((medLng !== null ? medLng : avgLng).toFixed(6));
+
+    // record accuracy and draw an accuracy circle centered on true averaged coords
+    lastAccuracy = typeof accuracy === 'number' ? accuracy : lastAccuracy;
+    if (accuracyCircle) {
+        try { osmMap.removeLayer(accuracyCircle); } catch(e){}
+        accuracyCircle = null;
+    }
+    if (lastAccuracy && osmMap) {
+        accuracyCircle = L.circle([hardwareLat, hardwareLng], { radius: lastAccuracy, color: '#60a5fa', weight: 1, fillOpacity: 0.05 }).addTo(osmMap);
+    }
+
+    // Helpful debug logging (console only, no UI change)
+    console.debug('GPS sample count:', lastPositions.length);
+    console.debug('Latest raw:', lat.toFixed(6), lng.toFixed(6));
+    console.debug('Smoothed (median):', hardwareLat, hardwareLng, 'accuracy:', lastAccuracy);
+
+    updateAdvisorAlertStatus("locActive", hardwareLat, hardwareLng);
+    updateMapCenter(hardwareLat, hardwareLng);
 }
 
 function updateOutputUIValues(aiData, lang) {
@@ -153,76 +285,58 @@ function updateOutputUIValues(aiData, lang) {
     const listContainer = document.getElementById('hospitalList');
     listContainer.innerHTML = '';
 
-    const canvas = document.getElementById('aiMapCanvas');
-    const ctx = canvas.getContext('2d');
+    // Clear existing markers and add hospital data to map
+    clearHospitalMarkers();
+
+    const hospitals = aiData.hospitals || [];
+    if (hospitals.length === 0) {
+        listContainer.innerHTML = `<div class="hospital-card" style="border-color:#d1d5db;color:#334155;">No nearby hospital/clinic suggestions are available for your location.</div>`;
+    }
     
-    canvas.width = canvas.parentElement.clientWidth || 600;
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "rgba(51, 65, 85, 0.4)"; ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-    for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
-
-    aiData.map_vector_data.roads.forEach(r => {
-        ctx.strokeStyle = "#334155"; ctx.lineWidth = 8; ctx.lineCap = "round";
-        ctx.beginPath(); ctx.moveTo(cx + r.from_x, cy - r.from_y); ctx.lineTo(cx + r.to_x, cy - r.to_y); ctx.stroke();
-    });
-
-    ctx.fillStyle = "#3b82f6"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, 2 * Math.PI); ctx.fill();
-    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2.5; ctx.stroke();
-    ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px system-ui"; ctx.fillText("YOU", cx - 11, cy + 3);
-
-    const ai_hospitals = aiData.map_vector_data.hospitals;
-    ai_hospitals.forEach((h, index) => {
-        const localName = h[`name_${lang}`];
-        const localAddress = h[`address_${lang}`];
-        
-        const distanceVal = Math.round((Math.sqrt(h.offset_x*h.offset_x + h.offset_y*h.offset_y) / 25) * 100) / 100;
-
+    // Determine marker color based on urgency
+    const markerColor = aiData.urgency === 'RED' ? '#ef4444' : (aiData.urgency === 'YELLOW' ? '#eab308' : '#10b981');
+    
+    hospitals.forEach((hospital, index) => {
+        // Create hospital list card
         const card = document.createElement('div');
         card.className = 'hospital-card';
         card.innerHTML = `
-            <strong>${index + 1}. ${localName}</strong><br>
-            <small>${localAddress} (<b>${distanceVal}</b> ${dict.kmAway})</small><br>
-            <span style="font-size:11px; color:${h.er ? 'var(--red)' : '#64748b'}; font-weight:bold;">
-                ${h.er ? dict.erOpen : dict.erClosed}
+            <strong>${index + 1}. ${hospital.name}</strong><br>
+            <small>${hospital.address}</small><br>
+            <small><b>${hospital.distance} ${dict.kmAway}</b></small><br>
+            <span style="font-size:11px; color:${hospital.has_emergency ? 'var(--red)' : '#64748b'}; font-weight:bold;">
+                ${hospital.has_emergency ? dict.erOpen : dict.erClosed}
             </span>
         `;
         listContainer.appendChild(card);
 
-        const hx = cx + h.offset_x;
-        const hy = cy - h.offset_y;
+        // Add marker to map
+        const iconColor = hospital.has_emergency ? '#ef4444' : '#eab308';
+        const marker = L.circleMarker([hospital.latitude, hospital.longitude], {
+            radius: 8,
+            fillColor: iconColor,
+            color: "#ffffff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(osmMap).bindPopup(`
+            <strong>${hospital.name}</strong><br>
+            ${hospital.address}<br>
+            <b>Distance:</b> ${hospital.distance} km<br>
+            ${hospital.has_emergency ? '🔴 Emergency Services Available' : '⏰ Limited Hours'}
+        `);
 
-        ctx.strokeStyle = aiData.urgency === 'RED' ? "rgba(239, 68, 68, 0.4)" : "rgba(234, 179, 8, 0.4)";
-        ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(hx, hy); ctx.stroke();
-
-        ctx.fillStyle = h.er ? "#ef4444" : "#eab308"; ctx.beginPath(); ctx.arc(hx, hy, 9, 0, 2 * Math.PI); ctx.fill();
-        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
-        
-        ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px system-ui"; ctx.fillText(index + 1, hx - 3, hy + 3.5);
-
-        ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui";
-        ctx.fillText(`${localName}`, hx + 14, hy + 4);
+        hospitalMarkers.push(marker);
     });
 
-    ctx.fillStyle = "rgba(15, 23, 42, 0.85)"; ctx.fillRect(10, canvas.height - 35, 410, 25);
-    ctx.fillStyle = "#38bdf8"; ctx.font = "11px monospace";
-    ctx.fillText(`⚡ AUTOMATIC TRACKING ONLINE | SECTOR: ${aiData.city.toUpperCase()} | LAT: ${hardwareLat.toFixed(2)} LNG: ${hardwareLng.toFixed(2)}`, 18, canvas.height - 18);
+    // Fit map bounds to show user and all hospitals
+    if (hospitals.length > 0 && osmMap) {
+        const allPoints = [
+            [hardwareLat, hardwareLng],
+            ...hospitals.map(h => [h.latitude, h.longitude])
+        ];
+        const bounds = L.latLngBounds(allPoints);
+        osmMap.fitBounds(bounds, { padding: [50, 50] });
+    }
 }
 
-function renderBlankGridOnCanvas() {
-    const canvas = document.getElementById('aiMapCanvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.parentElement.clientWidth || 600;
-    ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "rgba(51, 65, 85, 0.3)"; ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-    for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
-    ctx.fillStyle = "#475569"; ctx.font = "12px monospace";
-    ctx.fillText(`[ GPS Synced. Enter symptoms to draw dynamic AI map layers ]`, 30, canvas.height / 2);
-}

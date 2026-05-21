@@ -1,7 +1,6 @@
 import math
 import os
 import json
-import sys
 import sqlite3
 import requests
 from flask import Flask, render_template, request, jsonify
@@ -9,45 +8,13 @@ from geopy.distance import geodesic
 from openai import OpenAI
 
 
-def configure_output_encoding():
-    """Force UTF-8 output where supported to avoid Windows console encoding crashes."""
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, 'reconfigure'):
-            try:
-                stream.reconfigure(encoding='utf-8')
-            except Exception:
-                pass
-
-
-def load_local_env(path='.env'):
-    """Lightweight .env loader to keep local secrets out of source code."""
-    if not os.path.exists(path):
-        return
-
-    try:
-        with open(path, 'r', encoding='utf-8') as env_file:
-            for raw_line in env_file:
-                line = raw_line.strip()
-                if not line or line.startswith('#') or '=' not in line:
-                    continue
-                key, value = line.split('=', 1)
-                key = key.strip()
-                value = value.strip().strip('"').strip("'")
-                if key and key not in os.environ:
-                    os.environ[key] = value
-    except OSError:
-        pass
-
-
-configure_output_encoding()
-load_local_env()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 app = Flask(__name__)
 DB_FILE = 'ai_auto_map_audit.db'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 SPECIALTY_KEYWORD_MAP = {
     'dentist': ['tooth', 'teeth', 'dental', 'toothache', 'gum', 'cavity', 'dentist', 'wisdom tooth', 'root canal'],

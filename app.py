@@ -1,6 +1,7 @@
 import math
 import os
 import json
+import re
 import sys
 import sqlite3
 import requests
@@ -49,13 +50,120 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
-SPECIALTY_KEYWORD_MAP = {
-    'dentist': ['tooth', 'teeth', 'dental', 'toothache', 'gum', 'cavity', 'dentist', 'wisdom tooth', 'root canal'],
-    'dermatologist': ['skin', 'rash', 'eczema', 'psoriasis', 'acne', 'itch', 'blister', 'dermatology', 'sunburn', 'pimple'],
-    'cardiologist': ['chest', 'heart', 'palpitations', 'angina', 'heartburn', 'cardiac', 'palpitation', 'arrhythmia', 'stroke'],
-    'ophthalmologist': ['eye', 'vision', 'blurred', 'red eye', 'stye', 'eye pain', 'glasses', 'contacts', 'blindness'],
-    'orthopedic': ['bone', 'fracture', 'sprain', 'joint', 'knee', 'hip', 'back pain', 'fractured', 'arm', 'leg']
+SPECIALTY_SIGNAL_MAP = {
+    'dentist': {
+        'high': [
+            'diş', 'diş əti', 'ağıl dişi', 'tooth', 'teeth', 'gum', 'wisdom tooth',
+            'stomatolog', 'стоматолог', 'зуб', 'десна'
+        ],
+        'medium': [
+            'toothache', 'dental', 'karies', 'karyes', 'cavity', 'root canal',
+            'çənə', 'jaw', 'cold water pain', 'sensitivity'
+        ]
+    },
+    'dermatologist': {
+        'high': [
+            'dəri', 'xal', 'sivilcə', 'səpgi', 'qaşınma', 'qaşıntı', 'qabıqlanma',
+            'skin', 'acne', 'rash', 'itch', 'eczema', 'psoriasis', 'mole',
+            'кожа', 'сыпь', 'зуд', 'прыщ'
+        ],
+        'medium': [
+            'pustular', 'pustule', 'blackhead', 'scalp', 'baş dərisi', 'seborrhea',
+            'pigment', 'asymmetrical', 'asimmetrik', 'color change', 'rəngini dəyişib'
+        ]
+    },
+    'cardiologist': {
+        'high': [
+            'sinə', 'döş', 'ürək', 'aritmiya', 'nizamsız döyüntü', 'chest', 'heart',
+            'arrhythmia', 'palpitation', 'palpitations', 'angina', 'cardiac',
+            'грудь', 'сердце', 'аритмия'
+        ],
+        'medium': [
+            'chest tightness', 'tightness', 'shortness of breath', 'nəfəs darlığı',
+            'qan təzyiqi', 'blood pressure'
+        ]
+    },
+    'ophthalmologist': {
+        'high': [
+            'göz', 'görmə', 'bulanıq', 'göz qapağı', 'itdirsəyi', 'arpacıq',
+            'eye', 'vision', 'blurred vision', 'eyelid', 'stye',
+            'глаз', 'зрение', 'веко'
+        ],
+        'medium': [
+            'quruluq', 'batma', 'göz ağrısı', 'göz iltihabı', 'red eye',
+            'itchy eyes', 'light sensitivity', 'контактные линзы'
+        ]
+    },
+    'orthopedic': {
+        'high': [
+            'bel', 'diz', 'oynaq', 'bilək', 'burxdum', 'sınıq', 'əzələ', 'sümük',
+            'back', 'knee', 'joint', 'wrist', 'sprain', 'fracture', 'bone',
+            'сустав', 'перелом', 'колено', 'запястье'
+        ],
+        'medium': [
+            'stiffness', 'morning stiffness', 'xırtıltı', 'şişkinlik', 'swelling',
+            'hip', 'arm', 'leg', 'mobility'
+        ]
+    },
+    'neurologist': {
+        'high': [
+            'baş ağrısı', 'miqren', 'başgicəllənmə', 'nevroloq', 'headache', 
+            'migraine', 'dizziness', 'головная боль', 'мигрень', 'головокружение', 'невролог'
+        ],
+        'medium': [
+            'uyuşma', 'numbness', 'zəiflik', 'weakness', 'titrəmə', 'tremor', 'онемение', 'слабость'
+        ]
+    },
+    'gastroenterologist': {
+        'high': [
+            'mədə', 'bağırsaq', 'qusma', 'ishal', 'qastroenteroloq', 'stomach', 
+            'intestine', 'vomiting', 'diarrhea', 'желудок', 'кишечник', 'рвота', 'диарея', 'гастроэнтеролог'
+        ],
+        'medium': [
+            'ürəkbulanma', 'nausea', 'qəbzlik', 'constipation', 'həzmsizlik', 'indigestion', 'тошнота', 'запор'
+        ]
+    },
+    'otolaryngologist': {
+        'high': [
+            'qulaq', 'boğaz', 'burun', 'badamcıq', 'lor', 'ear', 'nose', 'throat', 
+            'ухо', 'горло', 'нос', 'лор', 'отоларинголог'
+        ],
+        'medium': [
+            'burun axması', 'runny nose', 'udqunma', 'swallowing', 'səs batması', 'насморк', 'глотание'
+        ]
+    }
 }
+
+SPECIALTY_KEYWORD_MAP = {
+    specialty: signals['high'] + signals['medium']
+    for specialty, signals in SPECIALTY_SIGNAL_MAP.items()
+}
+
+SPECIALTY_PRIORITY = ['cardiologist', 'neurologist', 'ophthalmologist', 'otolaryngologist', 'gastroenterologist', 'orthopedic', 'dentist', 'dermatologist']
+ALLOWED_SPECIALTIES = set(SPECIALTY_SIGNAL_MAP.keys()) | {'general'}
+
+RED_URGENCY_PHRASES = [
+    'heart attack', 'cardiac arrest', 'cannot breathe', 'cant breathe',
+    'difficulty breathing', 'severe bleeding', 'cannot stop bleeding',
+    'uncontrollable bleeding', 'lost consciousness', 'unconscious', 'seizure',
+    'stroke', 'paralysis', 'face droop', 'facial droop', 'anaphylaxis',
+    'chemical', 'chemical burn', 'kimyəvi', 'yanıq', 'korluq', 'görmənin itməsi', # Yeni əlavələr
+    'şüur itkisi', 'nəfəs ala bilmir', 'nəfəs ala bilmirəm', 'dayanmayan qanaxma',
+    'kəskin iflic', 'инсульт', 'потеря сознания', 'остановка сердца', 'химический ожог'
+]
+
+YELLOW_URGENCY_PHRASES = [
+    'chest tightness', 'sinə sıxıntısı', 'döş qəfəsində sıxıntı', 'arrhythmia',
+    'aritmiya', 'palpitations', 'irregular heartbeat', 'sprain', 'burxdum',
+    'fracture', 'sınıq', 'severe eye pain', 'göz iltihabı',
+    'vision loss', 'sudden blurred vision', 'high fever', 'qızdırma', 'deep cut',
+    'severe abdominal pain', 'morning stiffness', 'şiddətli tutulma', 'xırtıltı',
+    'ağıl dişi', 'wisdom tooth', 'qulağa vuran ağrı', 'radiates to my ear'
+]
+
+MILD_QUALIFIERS = [
+    'mild', 'slight', 'light', 'yüngül', 'az', 'stabil', 'minor'
+]
 
 SPECIALTY_SEARCH_CLAUSES = {
     'dentist': [
@@ -97,6 +205,27 @@ SPECIALTY_SEARCH_CLAUSES = {
         'node["healthcare:specialty"="orthopedic"]',
         'way["healthcare:specialty"="orthopedic"]',
         'relation["healthcare:specialty"="orthopedic"]'
+    ],
+    'neurologist': [
+        'node["healthcare"="neurologist"]',
+        'way["healthcare"="neurologist"]',
+        'relation["healthcare"="neurologist"]',
+        'node["healthcare:specialty"="neurology"]',
+        'way["healthcare:specialty"="neurology"]'
+    ],
+    'gastroenterologist': [
+        'node["healthcare"="gastroenterologist"]',
+        'way["healthcare"="gastroenterologist"]',
+        'relation["healthcare"="gastroenterologist"]',
+        'node["healthcare:specialty"="gastroenterology"]',
+        'way["healthcare:specialty"="gastroenterology"]'
+    ],
+    'otolaryngologist': [
+        'node["healthcare"="otolaryngologist"]',
+        'way["healthcare"="otolaryngologist"]',
+        'relation["healthcare"="otolaryngologist"]',
+        'node["healthcare:specialty"="otolaryngology"]',
+        'way["healthcare:specialty"="otolaryngology"]'
     ]
 }
 
@@ -115,16 +244,49 @@ NEARBY_HOSPITAL_DATABASE = [
     {'name': 'Sumqayit Clinic Center', 'address': 'Komsomol St', 'latitude': 40.5920, 'longitude': 49.6820, 'has_emergency': False}
 ]
 
+def normalize_symptom_text(text):
+    """Normalize symptom text for multilingual keyword matching."""
+    text = (text or '').lower()
+    text = re.sub(r'[\s\r\n\t]+', ' ', text)
+    return f" {text} "
+
+
 def detect_specialty_from_symptoms(text):
-    """Detect a likely medical specialty based on symptom keywords."""
-    text_lower = text.lower()
-    for specialty, keywords in SPECIALTY_KEYWORD_MAP.items():
-        if any(word in text_lower for word in keywords):
-            return specialty
-    return None
+    """Score symptoms and return the most likely specialist domain."""
+    text_lower = normalize_symptom_text(text)
+    scores = {}
+
+    for specialty, signals in SPECIALTY_SIGNAL_MAP.items():
+        score = 0
+        score += sum(3 for keyword in signals['high'] if keyword in text_lower)
+        score += sum(1 for keyword in signals['medium'] if keyword in text_lower)
+        scores[specialty] = score
+
+    max_score = max(scores.values()) if scores else 0
+    if max_score <= 0:
+        return None
+
+    top_specialties = [spec for spec, score in scores.items() if score == max_score]
+    for spec in SPECIALTY_PRIORITY:
+        if spec in top_specialties:
+            return spec
+    return top_specialties[0]
 
 
-def get_ai_symptom_assessment(text, city):
+def detect_urgency_from_symptoms(text):
+    """Classify urgency with stricter emergency triggers to reduce false RED labels."""
+    text_lower = normalize_symptom_text(text)
+
+    if any(phrase in text_lower for phrase in RED_URGENCY_PHRASES):
+        return "RED"
+    if any(phrase in text_lower for phrase in YELLOW_URGENCY_PHRASES):
+        return "YELLOW"
+    if any(phrase in text_lower for phrase in MILD_QUALIFIERS):
+        return "GREEN"
+    return "GREEN"
+
+
+def get_ai_symptom_assessment(text, city, detected_specialty=None):
     """Use an OpenAI model to interpret symptoms and return structured triage output."""
     if not USE_AI_SYMPTOMS or not OPENAI_API_KEY or not client:
         return None
@@ -132,23 +294,35 @@ def get_ai_symptom_assessment(text, city):
     try:
         client.api_key = OPENAI_API_KEY
         prompt = (
-            "You are a medical triage assistant for an emergency navigation app. "
-            "Analyze the user symptom description and return only a JSON object with the following keys: "
-            "urgency, specialist, reason, detected_specialty. "
-            "urgency must be one of RED, YELLOW, or GREEN. "
-            "specialist should be an object with en, az, ru translations. "
-            "reason should be an object with en, az, ru translations. "
-            "detected_specialty should be one of dentist, dermatologist, cardiologist, ophthalmologist, orthopedic, or general. "
-            "Use the city only for context if helpful. "
-            "Do not include any additional text outside the JSON object.\n\n"
+            "You are a highly sensitive and strict multilingual medical triage assistant.\n"
+            "Input can be Azerbaijani, English, Russian, or mixed.\n"
+            "Always analyze the context of the sentence, not just isolated words. Detect BOTH urgency and the most relevant specialist.\n\n"
+            "Allowed urgency labels: RED, YELLOW, GREEN.\n"
+            "Allowed detected_specialty labels: dentist, dermatologist, cardiologist, ophthalmologist, orthopedic, general.\n\n"
+            "Decision protocol:\n"
+            "1) Detect the dominant clinical domain first, then map to detected_specialty.\n"
+            "2) If symptoms clearly point to one organ system, do NOT return general.\n"
+            "3) RED is for IMMEDIATE LIFE-THREATENING OR ORGAN-THREATENING emergencies. This includes: severe breathing distress, uncontrolled bleeding, stroke signs, loss of consciousness, seizure, anaphylaxis, suspected heart attack, CHEMICAL BURNS, chemical splash in eyes, sudden complete vision loss, or severe traumatic deformity.\n"
+            "4) YELLOW for urgent conditions requiring prompt care but no immediate risk of death/organ loss: arrhythmia, chest tightness with exertion, simple fractures/sprains with swelling, acute infections, severe dental swelling/abscess, or non-chemical sudden eye inflammation.\n"
+            "5) GREEN for stable outpatient conditions: acne, rash, itching, chronic joint/back pain, gum bleeding, non-acute dental sensitivity.\n"
+            "6) Context Matters: Even if the user types 'yüngül' (mild), if they describe a chemical splashing into their eye, the situation is RED. Read the action described.\n\n"
+            "Specialist mapping anchors:\n"
+            "- Dermatologist: acne/rash/itching/flaking/mole changes. (Chemical skin burns go to RED / Emergency).\n"
+            "- Ophthalmologist: dry eye, blurred vision, stye. (Chemical splash in eye goes to Ophthalmologist AND RED urgency).\n"
+            "- Cardiologist: chest tightness, palpitations, arrhythmia.\n"
+            "- Orthopedic: sprain, fracture, joint pain/stiffness.\n"
+            "- Dentist: tooth/gum pain, wisdom tooth eruption, facial swelling from tooth.\n\n"
+            f"Server-side heuristic specialty hint: {detected_specialty or 'general'}\n"
             f"Symptoms: {text}\n"
-            f"City: {city}\n"
+            "Return ONLY valid JSON with keys:\n"
+            '{"urgency": "RED/YELLOW/GREEN", "specialist": {"en": "...", "az": "...", "ru": "..."}, "reason": {"en": "...", "az": "...", "ru": "..."}, "detected_specialty": "..."}'
         )
 
         response = client.chat.completions.create(
             model='gpt-4o-mini',
+            response_format={ "type": "json_object" },
             messages=[
-                {'role': 'system', 'content': 'You are a safely constrained assistant for symptom triage.'},
+                {'role': 'system', 'content': 'You are a safely constrained assistant for symptom triage. Always output strictly in JSON.'},
                 {'role': 'user', 'content': prompt}
             ],
             temperature=0.2,
@@ -156,16 +330,25 @@ def get_ai_symptom_assessment(text, city):
         )
 
         raw = response.choices[0].message.content.strip()
+        import re
+        raw = re.sub(r'^```json\s*', '', raw)
+        raw = re.sub(r'\s*```$', '', raw)
         parsed = json.loads(raw)
 
         # Validate returned structure and normalize values
         if isinstance(parsed, dict):
+            parsed_specialty = str(parsed.get('detected_specialty', 'general')).strip().lower()
+            if parsed_specialty not in ALLOWED_SPECIALTIES:
+                parsed_specialty = detected_specialty or 'general'
+            if parsed_specialty == 'general' and detected_specialty in ALLOWED_SPECIALTIES:
+                parsed_specialty = detected_specialty
+
             return {
                 'city': city,
                 'urgency': parsed.get('urgency', 'GREEN'),
                 'specialist': parsed.get('specialist', {'en': 'Primary Care Practitioner', 'az': 'Ailə Həkimi / Terapevt', 'ru': 'Участковый Терапевт'}),
                 'reason': parsed.get('reason', {'en': 'Mild symptoms. Monitor locally.', 'az': 'Yüngül simptomlar. Nəzarət edin.', 'ru': 'Легкие симптомы. Наблюдайте за состоянием.'}),
-                'detected_specialty': parsed.get('detected_specialty', 'general'),
+                'detected_specialty': parsed_specialty,
                 'map_vector_data': {
                     'center_city': city,
                     'hospitals': [],
@@ -341,10 +524,10 @@ def get_nearest_health_suggestions(lat, lng, city=None):
 
 def analyze_symptoms_and_generate_map_ai(text, city, specialty=None):
     """Consolidated logic analyzing symptom context and building map arrays."""
-    text_lower = text.lower()
+    detected_specialty = specialty or detect_specialty_from_symptoms(text)
 
     # If enabled, try the AI-powered symptom analysis first
-    ai_result = get_ai_symptom_assessment(text, city)
+    ai_result = get_ai_symptom_assessment(text, city, detected_specialty=detected_specialty)
     if ai_result is not None:
         return ai_result
     
@@ -368,56 +551,84 @@ def analyze_symptoms_and_generate_map_ai(text, city, specialty=None):
         ]
         roads = []
 
-    # Symptom urgency mapping logic
-    red_keywords = ['chest', 'heart', 'nəfəs', 'ürək', 'insult', 'nəfəsalma', 'qan', 'боль', 'грудь', 'сердце', 'дыхание', 'кровь', 'инсульт']
-    yellow_keywords = ['burn', 'cut', 'fever', 'fracture', 'yanıq', 'kəsik', 'qızdırma', 'sınıq', 'göz', 'baş ağrısı', 'ожог', 'порез', 'лихорадка', 'перелом', 'глаз', 'головная боль']
-    
-    if any(word in text_lower for word in red_keywords):
-        urgency, spec_en, spec_az, spec_ru, reas_en, reas_az, reas_ru = "RED", "Emergency Physician / Cardiologist", "Təcili Tibbi Yardım Həkimi / Kardioloq", "Врач Скорой Помощи / Кардиолог", "Potential life-threatening critical cardiovascular event.", "Həyat üçün təhlükə yarada bilən kəskin ürək-damar çatışmazlığı.", "Потенциально опасное для жизни острое сердечно-сосудистое нарушение."
-    elif any(word in text_lower for word in yellow_keywords):
-        urgency, spec_en, spec_az, spec_ru, reas_en, reas_az, reas_ru = "YELLOW", "Urgent Care Specialist", "Təcili Baxım Mütəxəssisi", "Специалист Неотложной Помощи", "Acute condition requiring rapid target diagnostic screening.", "Tez diaqnostik müayinə tələb edən kəskin vəziyyət.", "Острое состояние, требующее быстрой целенаправленной диагностики."
+    urgency = detect_urgency_from_symptoms(text)
+    if urgency == "RED":
+        spec_en, spec_az, spec_ru = "Emergency Physician", "Təcili Tibbi Yardım Həkimi", "Врач Скорой Помощи"
+        reas_en = "Potential life-threatening symptoms detected. Seek emergency services immediately."
+        reas_az = "Həyat üçün təhlükəli simptomlar müşahidə olunur. Dərhal təcili yardım xidmətinə müraciət edin."
+        reas_ru = "Обнаружены потенциально опасные для жизни симптомы. Немедленно обратитесь в экстренную службу."
+    elif urgency == "YELLOW":
+        spec_en, spec_az, spec_ru = "Urgent Care Specialist", "Təcili Baxım Mütəxəssisi", "Специалист Неотложной Помощи"
+        reas_en = "Acute symptoms require prompt in-person clinical evaluation."
+        reas_az = "Kəskin simptomlar qısa zamanda həkim müayinəsi tələb edir."
+        reas_ru = "Острые симптомы требуют оперативного очного осмотра."
     else:
-        urgency, spec_en, spec_az, spec_ru, reas_en, reas_az, reas_ru = "GREEN", "Primary Care Practitioner", "Ailə Həkimi / Terapevt", "Участковый Терапевт", "Mild systemic presentation. Monitor symptoms locally.", "Yüngül simptomlar. Vəziyyəti yerli olaraq nəzarətdə saxlayın.", "Легкие симптомы. Наблюдайте за состоянием дома."
+        spec_en, spec_az, spec_ru = "Primary Care Practitioner", "Ailə Həkimi / Terapevt", "Участковый Терапевт"
+        reas_en = "Current symptom pattern appears stable and outpatient-manageable."
+        reas_az = "Hazırkı simptom profili stabil görünür və ambulator izlənə bilər."
+        reas_ru = "Текущая симптоматика выглядит стабильной и подходит для амбулаторного наблюдения."
 
-    if specialty == 'dentist':
+    if detected_specialty == 'dentist':
         spec_en = "Dental Care Specialist"
         spec_az = "Diş Həkimi / Stomatoloq"
         spec_ru = "Стоматолог"
         reas_en = "Symptom pattern suggests dental pain or oral health care."
         reas_az = "Simptomlar diş ağrısı və ya ağız sağlamığına işarə edir."
         reas_ru = "Симптомы указывают на зубную боль или стоматологическую помощь."
-    elif specialty == 'dermatologist':
+    elif detected_specialty == 'dermatologist':
         spec_en = "Dermatologist"
         spec_az = "Dermatoloq"
         spec_ru = "Дерматолог"
         reas_en = "Skin-related symptoms suggest consultation with a dermatologist."
         reas_az = "Dəri ilə bağlı simptomlar dermatoloq məsləhətinə ehtiyac olduğunu göstərir."
         reas_ru = "Симптомы кожи указывают на консультацию у дерматолога."
-    elif specialty == 'cardiologist':
+    elif detected_specialty == 'cardiologist':
         spec_en = "Cardiologist"
         spec_az = "Kardioloq"
         spec_ru = "Кардиолог"
         reas_en = "Complaints are consistent with heart or cardiovascular care."
         reas_az = "Şikayətlər ürək və ya ürək-damar baxımına uyğundur."
         reas_ru = "Жалобы соответствуют сердечно-сосудистому уходу."
-    elif specialty == 'ophthalmologist':
+    elif detected_specialty == 'ophthalmologist':
         spec_en = "Ophthalmologist"
         spec_az = "Oftalmoloq"
         spec_ru = "Офтальмолог"
         reas_en = "Eye symptoms indicate specialist eye care is recommended."
         reas_az = "Göz simptomları ixtisaslı göz baxımını tövsiyə edir."
         reas_ru = "Симптомы глаз указывают на необходимость специализированной офтальмологической помощи."
-    elif specialty == 'orthopedic':
+    elif detected_specialty == 'orthopedic':
         spec_en = "Orthopedic Specialist"
         spec_az = "Ortopedik Mütəxəssis"
         spec_ru = "Ортопед"
         reas_en = "Musculoskeletal complaints suggest orthopedic evaluation."
         reas_az = "Əzələ-sümük şikayətləri ortopedik müayinə tələb edir."
         reas_ru = "Мышечно-скелетные жалобы требуют ортопедической оценки."
+    elif detected_specialty == 'neurologist':
+        spec_en = "Neurologist"
+        spec_az = "Nevroloq"
+        spec_ru = "Невролог"
+        reas_en = "Symptoms suggest a neurological evaluation is needed."
+        reas_az = "Simptomlar nevroloji müayinəyə ehtiyac olduğunu göstərir."
+        reas_ru = "Симптомы указывают на необходимость неврологического обследования."
+    elif detected_specialty == 'gastroenterologist':
+        spec_en = "Gastroenterologist"
+        spec_az = "Qastroenteroloq"
+        spec_ru = "Гастроэнтеролог"
+        reas_en = "Digestive system symptoms require gastroenterology care."
+        reas_az = "Həzm sistemi şikayətləri qastroenteroloq müayinəsi tələb edir."
+        reas_ru = "Симптомы пищеварительной системы требуют консультации гастроэнтеролога."
+    elif detected_specialty == 'otolaryngologist':
+        spec_en = "ENT Specialist (Otolaryngologist)"
+        spec_az = "LOR Mütəxəssisi (Otolarinqoloq)"
+        spec_ru = "ЛОР-врач (Отоларинголог)"
+        reas_en = "Ear, nose, or throat symptoms detected."
+        reas_az = "Qulaq, burun və ya boğazla bağlı simptomlar aşkarlandı."
+        reas_ru = "Обнаружены симптомы, связанные с ухом, горлом или носом."
 
     return {
         "city": city,
         "urgency": urgency,
+        "detected_specialty": detected_specialty or "general",
         "specialist": {"en": spec_en, "az": spec_az, "ru": spec_ru},
         "reason": {"en": reas_en, "az": reas_az, "ru": reas_ru},
         "map_vector_data": {
@@ -442,22 +653,23 @@ def process_triage():
         # 1. Automatically track user location city based on incoming telemetry coordinates
         detected_city = get_city_from_coordinates(lat, lng)
         
-        # 2. Optionally perform specialty-aware search if the client requested it
+        # 2. Always detect likely specialist; allow request flag to force specialty-focused map query.
+        detected_specialty = detect_specialty_from_symptoms(symptoms)
         use_specialty = bool(data.get('use_specialty', False))
-        if use_specialty:
-            detected_specialty = detect_specialty_from_symptoms(symptoms)
-            ai_payload = analyze_symptoms_and_generate_map_ai(symptoms, detected_city, specialty=detected_specialty)
-            hospitals = get_hospitals_from_openstreetmap(lat, lng, radius_km=10, specialty=detected_specialty)
-            if not hospitals:
-                hospitals = get_nearest_health_suggestions(lat, lng, detected_city)
-            ai_payload['specialty_search'] = detected_specialty or 'general'
-        else:
-            ai_payload = analyze_symptoms_and_generate_map_ai(symptoms, detected_city)
-            hospitals = get_hospitals_from_openstreetmap(lat, lng, radius_km=10)
-            if not hospitals:
-                hospitals = get_nearest_health_suggestions(lat, lng, detected_city)
-        ai_payload['hospitals'] = hospitals
+        specialty_for_search = detected_specialty if (use_specialty or detected_specialty) else None
 
+        ai_payload = analyze_symptoms_and_generate_map_ai(symptoms, detected_city, specialty=detected_specialty)
+        hospitals = get_hospitals_from_openstreetmap(lat, lng, radius_km=10, specialty=specialty_for_search)
+        if not hospitals:
+            hospitals = get_nearest_health_suggestions(lat, lng, detected_city)
+
+        ai_payload['specialty_search'] = detected_specialty or 'general'
+        # YELLOW və ya RED statusda təcili yardım xidməti olan yerləri önə çək
+        if ai_payload.get('urgency') in ('RED', 'YELLOW'):
+            hospitals.sort(key=lambda h: (0 if h.get('has_emergency') else 1, h.get('distance', 0)))
+
+        ai_payload['hospitals'] = hospitals
+        
         # 4. Log results inside relational database ledger tables
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()

@@ -193,7 +193,8 @@ function runTriagePipeline() {
         .then(payload => {
             if (payload.status === 'success') {
                 lastServerResponse = payload.data;
-                updateOutputUIValues(payload.data, lang);
+                openResultInNewTab(payload.data, lang);  // ← dəyişiklik burada
+                lastServerResponse = null;
             } else {
                 alert('AI Core Route Fault: ' + payload.message);
             }
@@ -267,6 +268,76 @@ function handleNewPosition(lat, lng, accuracy) {
 
     updateAdvisorAlertStatus("locActive", hardwareLat, hardwareLng);
     updateMapCenter(hardwareLat, hardwareLng);
+}
+
+function openResultInNewTab(aiData, lang) {
+    const dict = dictionary[lang];
+    const urgencyColors = { RED: '#ef4444', YELLOW: '#eab308', GREEN: '#10b981' };
+    const badgeColor = urgencyColors[aiData.urgency] || '#10b981';
+    const badgeText = aiData.urgency === 'RED' ? dict.statusRed :
+                      (aiData.urgency === 'YELLOW' ? dict.statusYellow : dict.statusGreen);
+
+    const hospitalsHTML = (aiData.hospitals || []).map((h, i) =>
+        '<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;">' +
+        '<strong>' + (i + 1) + '. ' + h.name + '</strong><br>' +
+        '<small>' + h.address + '</small><br>' +
+        '<small><b>' + h.distance + ' km</b></small><br>' +
+        '<span style="font-size:11px;color:' + (h.has_emergency ? '#ef4444' : '#64748b') + ';font-weight:bold;">' +
+        (h.has_emergency ? dict.erOpen : dict.erClosed) +
+        '</span></div>'
+    ).join('');
+
+    const centerLat = hardwareLat;
+    const centerLng = hardwareLng;
+    const hospitalsJSON = JSON.stringify(aiData.hospitals || []);
+
+    const htmlContent =
+        '<!DOCTYPE html><html lang="' + lang + '">' +
+        '<head><meta charset="UTF-8"><title>' + dict.outputHeading + '</title>' +
+        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>' +
+        '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>' +
+        '<style>' +
+        'body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 20px;background:#f8fafc;}' +
+        '.badge{display:inline-block;padding:10px 20px;border-radius:999px;color:#fff;font-weight:bold;font-size:15px;background:' + badgeColor + ';margin-bottom:16px;}' +
+        '#resultMap{height:420px;border-radius:12px;margin-top:16px;}' +
+        'h2{color:#0f172a;}h3{color:#1e40af;margin-top:24px;}' +
+        '</style></head>' +
+        '<body>' +
+        '<h2>' + dict.outputHeading + '</h2>' +
+        '<div class="badge">' + badgeText + '</div>' +
+        '<p><strong>' + dict.lblReason + '</strong> ' + aiData.reason[lang] + '</p>' +
+        '<p><strong>' + dict.lblSpecialist + '</strong> ' + aiData.specialist[lang] + '</p>' +
+        '<h3>' + dict.facilitiesHeading + '</h3>' +
+        hospitalsHTML +
+        '<h3>' + dict.mapHeading + '</h3>' +
+        '<div id="resultMap"></div>' +
+        '<script>' +
+        'var map=L.map("resultMap").setView([' + centerLat + ',' + centerLng + '],13);' +
+        'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors",maxZoom:19}).addTo(map);' +
+        'L.circleMarker([' + centerLat + ',' + centerLng + '],{radius:10,fillColor:"#3b82f6",color:"#fff",weight:2,fillOpacity:0.8}).addTo(map).bindPopup("Your Location");' +
+        'var hospitals=' + hospitalsJSON + ';' +
+        'hospitals.forEach(function(h){' +
+        'L.circleMarker([h.latitude,h.longitude],{radius:8,fillColor:h.has_emergency?"#ef4444":"#eab308",color:"#fff",weight:2,fillOpacity:0.8})' +
+        '.addTo(map).bindPopup("<strong>"+h.name+"<\/strong><br>"+h.distance+" km");' +
+        '});' +
+        'if(hospitals.length>0){' +
+        'var pts=[[' + centerLat + ',' + centerLng + ']].concat(hospitals.map(function(h){return[h.latitude,h.longitude];}));' +
+        'map.fitBounds(L.latLngBounds(pts),{padding:[50,50]});' +
+        '}' +
+        '<\/script>' +
+        '</body></html>';
+
+    // Blob URL metodu — popup blocker-i keçir
+    var blob = new Blob([htmlContent], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
 }
 
 function updateOutputUIValues(aiData, lang) {

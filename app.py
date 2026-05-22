@@ -49,8 +49,8 @@ DB_FILE = 'ai_auto_map_audit.db'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-PHARMACY_CACHE_TTL_SECONDS = 1800
-PHARMACY_CACHE_RADIUS_KM = 0.6
+PHARMACY_CACHE_TTL_SECONDS = 1800  # Keep last known pharmacy list for 30 minutes.
+PHARMACY_CACHE_RADIUS_KM = 0.6  # Reuse cache when the user stays within ~600m.
 PHARMACY_CACHE = {
     "coords": None,
     "results": [],

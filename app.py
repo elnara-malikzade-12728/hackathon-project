@@ -3,6 +3,7 @@ import os
 import json
 import re
 import sys
+import time
 import sqlite3
 import requests
 from rag_pipeline import build_index, retrieve_rules, format_evidence, get_max_urgency_from_evidence, RAG_AVAILABLE
@@ -48,6 +49,13 @@ DB_FILE = 'ai_auto_map_audit.db'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+PHARMACY_CACHE_TTL_SECONDS = 1800  # Keep last known pharmacy list for 30 minutes.
+PHARMACY_CACHE_RADIUS_KM = 0.6  # Reuse cache when the user stays within ~600m.
+PHARMACY_CACHE = {
+    "coords": None,
+    "results": [],
+    "timestamp": 0.0
+}
 SPECIALTY_SIGNAL_MAP = {
     'dentist': {
         'high': [
@@ -1095,6 +1103,26 @@ def sanitize_hospital_output(hospitals):
     return cleaned
 
 
+def get_cached_pharmacies(lat, lng):
+    if not PHARMACY_CACHE["results"] or not PHARMACY_CACHE["coords"]:
+        return []
+    if time.time() - PHARMACY_CACHE["timestamp"] > PHARMACY_CACHE_TTL_SECONDS:
+        return []
+    try:
+        distance = geodesic((lat, lng), PHARMACY_CACHE["coords"]).km
+    except Exception:
+        return []
+    if distance > PHARMACY_CACHE_RADIUS_KM:
+        return []
+    return list(PHARMACY_CACHE["results"])
+
+
+def update_pharmacy_cache(lat, lng, pharmacies):
+    PHARMACY_CACHE["coords"] = (lat, lng)
+    PHARMACY_CACHE["results"] = list(pharmacies)
+    PHARMACY_CACHE["timestamp"] = time.time()
+
+
 def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
     """Fetch nearby pharmacies around the provided coordinates."""
     try:
@@ -1115,7 +1143,7 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             timeout=25
         )
         if response.status_code != 200:
-            return []
+            return get_cached_pharmacies(lat, lng)
 
         data = response.json()
         pharmacies = []
@@ -1161,9 +1189,13 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             })
 
         pharmacies.sort(key=lambda x: x['distance'])
-        return pharmacies[:limit]
+        if pharmacies:
+            pharmacies = pharmacies[:limit]
+            update_pharmacy_cache(lat, lng, pharmacies)
+            return pharmacies
+        return get_cached_pharmacies(lat, lng)
     except Exception:
-        return []
+        return get_cached_pharmacies(lat, lng)
 
 
 def reverse_geocode_address(lat, lng):

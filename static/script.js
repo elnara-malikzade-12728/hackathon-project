@@ -331,20 +331,37 @@ function openResultInNewTab(aiData, lang) {
     const hospitals = aiData.hospitals || [];
     const hospitalsHTML = hospitals.length ? hospitals.map((h, i) =>
         '<div class="list-card">' +
-        '<strong>' + (i + 1) + '. ' + h.name + '</strong><br>' +
-        '<small>' + h.address + '</small><br>' +
-        '<small><b>' + h.distance + ' km</b></small><br>' +
-        '<span class="status-text" style="color:' + (h.has_emergency ? '#ef4444' : '#64748b') + ';">' +
+        '<div class="card-header">' +
+        '<div class="card-title">' +
+        '<span class="card-index">' + (i + 1) + '</span>' +
+        '<span class="card-name">' + h.name + '</span>' +
+        '</div>' +
+        '<span class="distance-pill">' + h.distance + ' ' + dict.kmAway + '</span>' +
+        '</div>' +
+        '<div class="card-meta">' +
+        '<span class="meta-icon">🏥</span>' +
+        '<span>' + h.address + '</span>' +
+        '</div>' +
+        '<div class="card-status ' + (h.has_emergency ? 'status-open' : 'status-closed') + '">' +
         (h.has_emergency ? dict.erOpen : dict.erClosed) +
-        '</span></div>'
+        '</div>' +
+        '</div>'
     ).join('') : '<div class="empty-state">' + dict.noHospitals + '</div>';
 
     const pharmacies = aiData.pharmacies || [];
     const pharmaciesHTML = pharmacies.length ? pharmacies.map((p, i) =>
         '<div class="list-card pharmacy-card">' +
-        '<strong>' + (i + 1) + '. ' + p.name + '</strong><br>' +
-        '<small>' + p.address + '</small><br>' +
-        '<small><b>' + p.distance + ' km</b></small>' +
+        '<div class="card-header">' +
+        '<div class="card-title">' +
+        '<span class="card-index">' + (i + 1) + '</span>' +
+        '<span class="card-name">' + p.name + '</span>' +
+        '</div>' +
+        '<span class="distance-pill">' + p.distance + ' ' + dict.kmAway + '</span>' +
+        '</div>' +
+        '<div class="card-meta">' +
+        '<span class="meta-icon">💊</span>' +
+        '<span>' + p.address + '</span>' +
+        '</div>' +
         '</div>'
     ).join('') : '<div class="empty-state">' + dict.noPharmacies + '</div>';
 
@@ -358,15 +375,25 @@ function openResultInNewTab(aiData, lang) {
         '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>' +
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>' +
         '<style>' +
-        'body{font-family:sans-serif;max-width:980px;margin:40px auto;padding:0 20px;background:#f8fafc;}' +
-        '.badge{display:inline-block;padding:10px 20px;border-radius:999px;color:#fff;font-weight:bold;font-size:15px;background:' + badgeColor + ';margin-bottom:16px;}' +
+        'body{font-family:"Inter",system-ui,-apple-system,sans-serif;max-width:1020px;margin:32px auto;padding:0 20px;background:#f1f5f9;color:#0f172a;}' +
+        '.badge{display:inline-block;padding:10px 20px;border-radius:999px;color:#fff;font-weight:600;font-size:14px;background:' + badgeColor + ';margin-bottom:18px;}' +
         '.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}' +
-        '.list-card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fff;}' +
-        '.pharmacy-card{border-color:#d8f5ea;background:#f8fffb;}' +
-        '.status-text{font-size:11px;font-weight:bold;}' +
-        '.empty-state{border:1px dashed #cbd5e1;border-radius:8px;padding:12px;background:#f8fafc;color:#64748b;font-size:13px;}' +
-        '#resultMap{height:420px;border-radius:12px;margin-top:20px;}' +
-        'h2{color:#0f172a;}h3{color:#1e40af;margin-top:0;margin-bottom:12px;}' +
+        '.section-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 12px 30px rgba(15,23,42,0.08);}' +
+        '.list-card{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-bottom:12px;background:#fff;}' +
+        '.pharmacy-card{border-color:#d1fae5;background:#f7fffb;}' +
+        '.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}' +
+        '.card-title{display:flex;align-items:center;gap:10px;font-weight:600;color:#0f172a;}' +
+        '.card-index{width:28px;height:28px;border-radius:999px;background:#e2e8f0;color:#0f172a;font-size:13px;display:flex;align-items:center;justify-content:center;font-weight:600;}' +
+        '.pharmacy-card .card-index{background:#bbf7d0;color:#166534;}' +
+        '.distance-pill{background:#e0f2fe;color:#0369a1;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap;}' +
+        '.card-meta{margin-top:8px;display:flex;gap:8px;color:#475569;font-size:13px;align-items:flex-start;}' +
+        '.meta-icon{font-size:14px;line-height:1.2;margin-top:1px;}' +
+        '.card-status{margin-top:8px;font-size:12px;font-weight:600;}' +
+        '.status-open{color:#b91c1c;}' +
+        '.status-closed{color:#64748b;}' +
+        '.empty-state{border:1px dashed #cbd5e1;border-radius:12px;padding:14px;background:#f8fafc;color:#64748b;font-size:13px;}' +
+        '#resultMap{height:420px;border-radius:14px;margin-top:12px;border:1px solid #e2e8f0;}' +
+        'h2{color:#0f172a;margin-bottom:6px;}h3{color:#1e40af;margin-top:0;margin-bottom:12px;}' +
         '@media(max-width:820px){.results-grid{grid-template-columns:1fr;} }' +
         '</style></head>' +
         '<body>' +
@@ -375,17 +402,19 @@ function openResultInNewTab(aiData, lang) {
         '<p><strong>' + dict.lblReason + '</strong> ' + aiData.reason[lang] + '</p>' +
         '<p><strong>' + dict.lblSpecialist + '</strong> ' + aiData.specialist[lang] + '</p>' +
         '<div class="results-grid">' +
-        '<div>' +
+        '<div class="section-card">' +
         '<h3>' + dict.facilitiesHeading + '</h3>' +
         hospitalsHTML +
         '</div>' +
-        '<div>' +
+        '<div class="section-card">' +
         '<h3>' + dict.pharmaciesHeading + '</h3>' +
         pharmaciesHTML +
         '</div>' +
         '</div>' +
-        '<h3 style="margin-top:24px;">' + dict.mapHeading + '</h3>' +
+        '<div class="section-card" style="margin-top:24px;">' +
+        '<h3>' + dict.mapHeading + '</h3>' +
         '<div id="resultMap"></div>' +
+        '</div>' +
         '<script>' +
         'var map=L.map("resultMap").setView([' + centerLat + ',' + centerLng + '],13);' +
         'L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors",maxZoom:19}).addTo(map);' +

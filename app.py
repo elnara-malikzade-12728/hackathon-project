@@ -3,6 +3,7 @@ import os
 import json
 import re
 import sys
+import time
 import sqlite3
 import requests
 from rag_pipeline import build_index, retrieve_rules, format_evidence, get_max_urgency_from_evidence, RAG_AVAILABLE
@@ -48,6 +49,13 @@ DB_FILE = 'ai_auto_map_audit.db'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+PHARMACY_CACHE_TTL_SECONDS = 1800  # Keep last known pharmacy list for 30 minutes.
+PHARMACY_CACHE_RADIUS_KM = 0.6  # Reuse cache when the user stays within ~600m.
+PHARMACY_CACHE = {
+    "coords": None,
+    "results": [],
+    "timestamp": 0.0
+}
 SPECIALTY_SIGNAL_MAP = {
     'dentist': {
         'high': [
@@ -1095,8 +1103,28 @@ def sanitize_hospital_output(hospitals):
     return cleaned
 
 
+def get_cached_pharmacies(lat, lng):
+    if not PHARMACY_CACHE["results"] or not PHARMACY_CACHE["coords"]:
+        return []
+    if time.time() - PHARMACY_CACHE["timestamp"] > PHARMACY_CACHE_TTL_SECONDS:
+        return []
+    try:
+        distance = geodesic((lat, lng), PHARMACY_CACHE["coords"]).km
+    except Exception:
+        return []
+    if distance > PHARMACY_CACHE_RADIUS_KM:
+        return []
+    return list(PHARMACY_CACHE["results"])
+
+
+def update_pharmacy_cache(lat, lng, pharmacies):
+    PHARMACY_CACHE["coords"] = (lat, lng)
+    PHARMACY_CACHE["results"] = list(pharmacies)
+    PHARMACY_CACHE["timestamp"] = time.time()
+
+
 def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
-    """Fetch nearby pharmacies for non-critical cases."""
+    """Fetch nearby pharmacies around the provided coordinates."""
     try:
         overpass_url = "https://overpass-api.de/api/interpreter"
         radius_m = int(radius_km * 1000)
@@ -1115,7 +1143,7 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             timeout=25
         )
         if response.status_code != 200:
-            return []
+            return get_cached_pharmacies(lat, lng)
 
         data = response.json()
         pharmacies = []
@@ -1132,11 +1160,20 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             tags = element.get('tags', {})
             name = tags.get('name', 'Pharmacy')
             address_parts = []
-            if tags.get('addr:street'):
-                address_parts.append(tags.get('addr:street'))
-            if tags.get('addr:housenumber'):
-                address_parts.append(tags.get('addr:housenumber'))
-            address = ', '.join(address_parts).strip() or 'Address unavailable'
+            if tags.get('addr:full'):
+                address_parts.append(tags.get('addr:full'))
+            else:
+                street = tags.get('addr:street') or tags.get('addr:place')
+                if street:
+                    address_parts.append(street)
+                if tags.get('addr:housenumber'):
+                    address_parts.append(tags.get('addr:housenumber'))
+                for key in ('addr:suburb', 'addr:district', 'addr:city', 'addr:province', 'addr:state'):
+                    if tags.get(key):
+                        address_parts.append(tags.get(key))
+            address = ', '.join(address_parts).strip()
+            if not address:
+                address = reverse_geocode_address(p_lat, p_lng) or f"{p_lat:.5f}, {p_lng:.5f}"
 
             try:
                 distance = geodesic((lat, lng), (p_lat, p_lng)).km
@@ -1152,9 +1189,30 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             })
 
         pharmacies.sort(key=lambda x: x['distance'])
-        return pharmacies[:limit]
+        if pharmacies:
+            pharmacies = pharmacies[:limit]
+            update_pharmacy_cache(lat, lng, pharmacies)
+            return pharmacies
+        return get_cached_pharmacies(lat, lng)
     except Exception:
-        return []
+        return get_cached_pharmacies(lat, lng)
+
+
+def reverse_geocode_address(lat, lng):
+    """Resolve a human-readable address for coordinates using OpenStreetMap Nominatim."""
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={'format': 'jsonv2', 'lat': lat, 'lon': lng},
+            headers={'User-Agent': 'AI-SymptomTriage/1.0', 'Accept': 'application/json'},
+            timeout=10
+        )
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return data.get('display_name')
+    except Exception:
+        return None
 
 def analyze_symptoms_and_generate_map_ai(text, city, specialty=None, patient_context=None):
     """Consolidated logic analyzing symptom context and building map arrays."""
@@ -1391,7 +1449,7 @@ def process_triage():
                 hospitals = (hospitals + emergency_fallback)[:8]
 
         ai_payload['hospitals'] = sanitize_hospital_output(hospitals[:5])
-        ai_payload['pharmacies'] = [] if urgency == 'RED' else get_nearby_pharmacies(lat, lng, radius_km=3, limit=4)
+        ai_payload['pharmacies'] = get_nearby_pharmacies(lat, lng, radius_km=3, limit=4)
         
         # 4. Log results inside relational database ledger tables
         conn = sqlite3.connect(DB_FILE)

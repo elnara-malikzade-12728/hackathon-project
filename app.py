@@ -1355,7 +1355,7 @@ def process_triage():
             f"Symptoms: {symptoms}"
         )
         
-        # 1. Automatically track user location city based on incoming telemetry coordinates
+        # 1. Automatically track city based on telemetry coordinates
         detected_city = get_city_from_coordinates(lat, lng)
         
         # 2. Always detect likely specialist; allow request flag to force specialty-focused map query.
@@ -1403,6 +1403,7 @@ def process_triage():
         
         return jsonify({"status": "success", "data": ai_payload})
     except Exception as e:
+        print(f"CRITICAL EXCEPTION IN TRIAGE HANDLER: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/hospitals', methods=['GET'])

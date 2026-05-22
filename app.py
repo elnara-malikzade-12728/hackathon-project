@@ -1096,7 +1096,7 @@ def sanitize_hospital_output(hospitals):
 
 
 def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
-    """Fetch nearby pharmacies for non-critical cases."""
+    """Fetch nearby pharmacies around the provided coordinates."""
     try:
         overpass_url = "https://overpass-api.de/api/interpreter"
         radius_m = int(radius_km * 1000)
@@ -1132,11 +1132,20 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
             tags = element.get('tags', {})
             name = tags.get('name', 'Pharmacy')
             address_parts = []
-            if tags.get('addr:street'):
-                address_parts.append(tags.get('addr:street'))
-            if tags.get('addr:housenumber'):
-                address_parts.append(tags.get('addr:housenumber'))
-            address = ', '.join(address_parts).strip() or 'Address unavailable'
+            if tags.get('addr:full'):
+                address_parts.append(tags.get('addr:full'))
+            else:
+                street = tags.get('addr:street') or tags.get('addr:place')
+                if street:
+                    address_parts.append(street)
+                if tags.get('addr:housenumber'):
+                    address_parts.append(tags.get('addr:housenumber'))
+                for key in ('addr:suburb', 'addr:district', 'addr:city', 'addr:province', 'addr:state'):
+                    if tags.get(key):
+                        address_parts.append(tags.get(key))
+            address = ', '.join(address_parts).strip()
+            if not address:
+                address = reverse_geocode_address(p_lat, p_lng) or f"{p_lat:.5f}, {p_lng:.5f}"
 
             try:
                 distance = geodesic((lat, lng), (p_lat, p_lng)).km
@@ -1155,6 +1164,23 @@ def get_nearby_pharmacies(lat, lng, radius_km=3, limit=5):
         return pharmacies[:limit]
     except Exception:
         return []
+
+
+def reverse_geocode_address(lat, lng):
+    """Resolve a human-readable address for coordinates using OpenStreetMap Nominatim."""
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={'format': 'jsonv2', 'lat': lat, 'lon': lng},
+            headers={'User-Agent': 'AI-SymptomTriage/1.0', 'Accept': 'application/json'},
+            timeout=10
+        )
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return data.get('display_name')
+    except Exception:
+        return None
 
 def analyze_symptoms_and_generate_map_ai(text, city, specialty=None, patient_context=None):
     """Consolidated logic analyzing symptom context and building map arrays."""
@@ -1391,7 +1417,7 @@ def process_triage():
                 hospitals = (hospitals + emergency_fallback)[:8]
 
         ai_payload['hospitals'] = sanitize_hospital_output(hospitals[:5])
-        ai_payload['pharmacies'] = [] if urgency == 'RED' else get_nearby_pharmacies(lat, lng, radius_km=3, limit=4)
+        ai_payload['pharmacies'] = get_nearby_pharmacies(lat, lng, radius_km=3, limit=4)
         
         # 4. Log results inside relational database ledger tables
         conn = sqlite3.connect(DB_FILE)

@@ -1,31 +1,37 @@
 const dictionary = {
     az: {
-        mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diaqnostik Giriş Sistemi", inputSub: "Simptomlarınızı sərbəst şəkildə yazın:",
+        mainTitle: "Symptom Triage", inputHeading: "Diaqnostik Giriş Sistemi", inputSub: "Simptomlarınızı sərbəst şəkildə yazın:",
         placeholder: "Məsələn: Qəfil sinə ağrısı başladı, nəfəs almaq çətindir...", checkboxText: "Bunun rəsmi tibbi məsləhət olmadığını və bir AI simulyasiyası olduğunu anlayıram.",
-        btnText: "Təhlil Et & Xəritəni Qur", btnLoading: "Simptomlar tehlil olunur ve yaxın tibb məntəqələri siyahısı yüklənir...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (103) zəng edin.",
+        btnText: "Təhlil Et", btnLoading: "Simptomlar təhlil olunur və nəticələr hazırlanır...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (103) zəng edin.",
         outputHeading: "Klinik Qiymətləndirmə Paneli", lblReason: "Səbəb:", lblSpecialist: "Məsləhət Görülən Həkim:", facilitiesHeading: "Yaxın Hospitals/Klinikalar (Təkliflər)", mapHeading: "OpenStreetMap - İnteraktiv Xəritə",
         statusRed: "🔴 TƏCİLİ - Qırmızı Status", statusYellow: "🟡 VACİB - Sarı Status", statusGreen: "🟢 Stabil - Yaşıl Status", erOpen: "🔴 24/7 Təcili Yardım Var", erClosed: "⏰ Yalnız İş Saatları", kmAway: "km",
         pharmaciesHeading: "Yaxın Apteklər (Əlavə)",
+        noHospitals: "Yaxınlıqda xəstəxana/klinika tapılmadı.",
+        noPharmacies: "Yaxınlıqda aptek tapılmadı.",
         locActive: "📍 Mövqe sinxronizasiyası aktivdir. Hazırkı mövqeyiniz yüklənir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart koordinatlara geri dönüldü.",
         agePlh: "Yaşınız (Məs: 35)", genNone: "Cinsiyyət (Seçilməyib)", genM: "Kişi", genF: "Qadın", chronicPlh: "Xroniki xəstəliklər (Məs: Diabet, Astma... Yoxdursa boş buraxın)"
     },
     en: {
-        mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diagnostic Input Engine", inputSub: "Describe your symptoms in plain language:",
+        mainTitle: "Symptom Triage", inputHeading: "Diagnostic Input Engine", inputSub: "Describe your symptoms in plain language:",
         placeholder: "Example: Experiencing sudden sharp chest pain and tightness...", checkboxText: "I understand this is an AI hackathon simulation and not official medical advice.",
-        btnText: "Analyze & Load Map", btnLoading: "Analyzing symptoms and loading nearby medical facilities' list...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 103 immediately.",
+        btnText: "Analyze", btnLoading: "Analyzing symptoms and preparing your results...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 103 immediately.",
         outputHeading: "Clinical Assessment Dashboard", lblReason: "Clinical Reason:", lblSpecialist: "Direct Route Referral:", facilitiesHeading: "Nearby Hospitals/Clinics (Suggested)", mapHeading: "OpenStreetMap - Interactive Map",
         statusRed: "RED EMERGENCY CARE STATUS", statusYellow: "YELLOW URGENT DISPATCH REQUIRED", statusGreen: "GREEN LOW URGENCY PROFILE", erOpen: "🔴 Emergency Services Operational", erClosed: "⏰ Clinic Hours Apply", kmAway: "km",
         pharmaciesHeading: "Nearby Pharmacies (Additional)",
+        noHospitals: "No nearby hospital/clinic suggestions are available.",
+        noPharmacies: "No nearby pharmacies are available.",
         locActive: "📍 Location sync active: your current position is being used.", locDenied: "🔒 Geolocation blocked. Fallback coordinates are active.",
         agePlh: "Age (e.g. 35)", genNone: "Gender (Not specified)", genM: "Male", genF: "Female", chronicPlh: "Chronic conditions (e.g. Diabetes... Leave empty if none)"
     },
     ru: {
-        mainTitle: "🏥 AI SymptomTriage", inputHeading: "Система Диагностики", inputSub: "Опишите ваши симптомы в свободной форме:",
+        mainTitle: "Symptom Triage", inputHeading: "Система Диагностики", inputSub: "Опишите ваши симптомы в свободной форме:",
         placeholder: "Например: Началась внезапная острая боль в груди, трудно дышать...", checkboxText: "Я понимаю, что это симуляция AI для хакатона и не является официальной медицинской консультацией.",
-        btnText: "Анализировать & Загрузить Карту", btnLoading: "Анализ симптомов и загрузка списка ближайших медицинских учреждений...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 103.",
+        btnText: "Анализировать", btnLoading: "Анализ симптомов и подготовка результатов...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 103.",
         outputHeading: "Панель Клинической Оценки", lblReason: "Причина:", lblSpecialist: "Рекомендуемый Специалист:", facilitiesHeading: "Ближайшие Больницы/Клиники (Рекомендации)", mapHeading: "OpenStreetMap - Интерактивная Карта",
         statusRed: "🔴 СРОЧНО - Красный Статус", statusYellow: "🟡 ВНИМАНИЕ - Желтый Статус", statusGreen: "🟢 Стабильно - Зеленый Статус", erOpen: "🔴 Есть Экстренная Помощь", erClosed: "⏰ Только в рабочие часы", kmAway: "км",
         pharmaciesHeading: "Ближайшие Аптеки (Дополнительно)",
+        noHospitals: "Поблизости нет рекомендаций больниц/клиник.",
+        noPharmacies: "Поблизости нет аптек.",
         locActive: "📍 Геопозиция синхронизирована: используется ваше текущее положение.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты.",
         agePlh: "Возраст (напр. 35)", genNone: "Пол (Не указан)", genM: "Мужской", genF: "Женский", chronicPlh: "Хронические заболевания (напр. Диабет... Оставьте пустым, если нет)"
     }
@@ -79,9 +85,11 @@ function initializeOSMMap() {
 }
 
 function updateMapCenter(lat, lng) {
+    if (!document.getElementById('osmMap')) return;
     if (!osmMap) {
         initializeOSMMap();
     }
+    if (!osmMap) return;
     osmMap.setView([lat, lng], 13);
     if (userMarker) {
         userMarker.setLatLng([lat, lng]);
@@ -115,6 +123,10 @@ function startGeolocationWatch() {
 }
 
 function clearHospitalMarkers() {
+    if (!osmMap) {
+        hospitalMarkers = [];
+        return;
+    }
     hospitalMarkers.forEach(marker => osmMap.removeLayer(marker));
     hospitalMarkers = [];
 }
@@ -142,24 +154,41 @@ function switchLanguageInterface() {
     const lang = document.getElementById('langSheet').value;
     const dict = dictionary[lang];
     
-    document.getElementById('mainTitle').innerText = dict.mainTitle;
-    document.getElementById('inputHeading').innerText = dict.inputHeading;
-    document.getElementById('inputSub').innerText = dict.inputSub;
-    document.getElementById('symptomsInput').placeholder = dict.placeholder;
-    document.getElementById('checkboxText').innerText = dict.checkboxText;
-    document.getElementById('ageInput').placeholder = dict.agePlh;
-    document.getElementById('optGenNone').innerText = dict.genNone;
-    document.getElementById('optGenM').innerText = dict.genM;
-    document.getElementById('optGenF').innerText = dict.genF;
-    document.getElementById('chronicInput').placeholder = dict.chronicPlh;
+    const titleEl = document.getElementById('mainTitle');
+    if (titleEl) titleEl.innerText = dict.mainTitle;
+    const inputHeading = document.getElementById('inputHeading');
+    if (inputHeading) inputHeading.innerText = dict.inputHeading;
+    const inputSub = document.getElementById('inputSub');
+    if (inputSub) inputSub.innerText = dict.inputSub;
+    const symptomsInput = document.getElementById('symptomsInput');
+    if (symptomsInput) symptomsInput.placeholder = dict.placeholder;
+    const checkboxText = document.getElementById('checkboxText');
+    if (checkboxText) checkboxText.innerText = dict.checkboxText;
+    const ageInput = document.getElementById('ageInput');
+    if (ageInput) ageInput.placeholder = dict.agePlh;
+    const optGenNone = document.getElementById('optGenNone');
+    if (optGenNone) optGenNone.innerText = dict.genNone;
+    const optGenM = document.getElementById('optGenM');
+    if (optGenM) optGenM.innerText = dict.genM;
+    const optGenF = document.getElementById('optGenF');
+    if (optGenF) optGenF.innerText = dict.genF;
+    const chronicInput = document.getElementById('chronicInput');
+    if (chronicInput) chronicInput.placeholder = dict.chronicPlh;
     
-    document.getElementById('submitBtn').innerText = dict.btnText;
-    document.getElementById('disclaimerText').innerHTML = dict.disclaimer;
-    document.getElementById('outputHeading').innerText = dict.outputHeading;
-    document.getElementById('lblReason').innerText = dict.lblReason;
-    document.getElementById('lblSpecialist').innerText = dict.lblSpecialist;
-    document.getElementById('facilitiesHeading').innerText = dict.facilitiesHeading;
-    document.getElementById('mapHeading').innerText = dict.mapHeading;
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) submitBtn.innerText = dict.btnText;
+    const disclaimerText = document.getElementById('disclaimerText');
+    if (disclaimerText) disclaimerText.innerHTML = dict.disclaimer;
+    const outputHeading = document.getElementById('outputHeading');
+    if (outputHeading) outputHeading.innerText = dict.outputHeading;
+    const lblReason = document.getElementById('lblReason');
+    if (lblReason) lblReason.innerText = dict.lblReason;
+    const lblSpecialist = document.getElementById('lblSpecialist');
+    if (lblSpecialist) lblSpecialist.innerText = dict.lblSpecialist;
+    const facilitiesHeading = document.getElementById('facilitiesHeading');
+    if (facilitiesHeading) facilitiesHeading.innerText = dict.facilitiesHeading;
+    const mapHeading = document.getElementById('mapHeading');
+    if (mapHeading) mapHeading.innerText = dict.mapHeading;
 
     const banner = document.getElementById('locationAdvisor');
     if (banner) {
@@ -273,12 +302,14 @@ function handleNewPosition(lat, lng, accuracy) {
 
     // record accuracy and draw an accuracy circle centered on true averaged coords
     lastAccuracy = typeof accuracy === 'number' ? accuracy : lastAccuracy;
-    if (accuracyCircle) {
-        try { osmMap.removeLayer(accuracyCircle); } catch(e){}
-        accuracyCircle = null;
-    }
-    if (lastAccuracy && osmMap) {
-        accuracyCircle = L.circle([hardwareLat, hardwareLng], { radius: lastAccuracy, color: '#60a5fa', weight: 1, fillOpacity: 0.05 }).addTo(osmMap);
+    if (osmMap) {
+        if (accuracyCircle) {
+            try { osmMap.removeLayer(accuracyCircle); } catch(e){}
+            accuracyCircle = null;
+        }
+        if (lastAccuracy) {
+            accuracyCircle = L.circle([hardwareLat, hardwareLng], { radius: lastAccuracy, color: '#60a5fa', weight: 1, fillOpacity: 0.05 }).addTo(osmMap);
+        }
     }
 
     // Helpful debug logging (console only, no UI change)
@@ -297,23 +328,25 @@ function openResultInNewTab(aiData, lang) {
     const badgeText = aiData.urgency === 'RED' ? dict.statusRed :
                       (aiData.urgency === 'YELLOW' ? dict.statusYellow : dict.statusGreen);
 
-    const hospitalsHTML = (aiData.hospitals || []).map((h, i) =>
-        '<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;">' +
+    const hospitals = aiData.hospitals || [];
+    const hospitalsHTML = hospitals.length ? hospitals.map((h, i) =>
+        '<div class="list-card">' +
         '<strong>' + (i + 1) + '. ' + h.name + '</strong><br>' +
         '<small>' + h.address + '</small><br>' +
         '<small><b>' + h.distance + ' km</b></small><br>' +
-        '<span style="font-size:11px;color:' + (h.has_emergency ? '#ef4444' : '#64748b') + ';font-weight:bold;">' +
+        '<span class="status-text" style="color:' + (h.has_emergency ? '#ef4444' : '#64748b') + ';">' +
         (h.has_emergency ? dict.erOpen : dict.erClosed) +
         '</span></div>'
-    ).join('');
+    ).join('') : '<div class="empty-state">' + dict.noHospitals + '</div>';
 
-    const pharmaciesHTML = (aiData.pharmacies || []).map((p, i) =>
-        '<div style="border:1px solid #d8f5ea;border-radius:8px;padding:10px;margin-bottom:8px;background:#f8fffb;">' +
+    const pharmacies = aiData.pharmacies || [];
+    const pharmaciesHTML = pharmacies.length ? pharmacies.map((p, i) =>
+        '<div class="list-card pharmacy-card">' +
         '<strong>' + (i + 1) + '. ' + p.name + '</strong><br>' +
         '<small>' + p.address + '</small><br>' +
         '<small><b>' + p.distance + ' km</b></small>' +
         '</div>'
-    ).join('');
+    ).join('') : '<div class="empty-state">' + dict.noPharmacies + '</div>';
 
     const centerLat = hardwareLat;
     const centerLng = hardwareLng;
@@ -325,20 +358,33 @@ function openResultInNewTab(aiData, lang) {
         '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>' +
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>' +
         '<style>' +
-        'body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 20px;background:#f8fafc;}' +
+        'body{font-family:sans-serif;max-width:980px;margin:40px auto;padding:0 20px;background:#f8fafc;}' +
         '.badge{display:inline-block;padding:10px 20px;border-radius:999px;color:#fff;font-weight:bold;font-size:15px;background:' + badgeColor + ';margin-bottom:16px;}' +
-        '#resultMap{height:420px;border-radius:12px;margin-top:16px;}' +
-        'h2{color:#0f172a;}h3{color:#1e40af;margin-top:24px;}' +
+        '.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}' +
+        '.list-card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fff;}' +
+        '.pharmacy-card{border-color:#d8f5ea;background:#f8fffb;}' +
+        '.status-text{font-size:11px;font-weight:bold;}' +
+        '.empty-state{border:1px dashed #cbd5e1;border-radius:8px;padding:12px;background:#f8fafc;color:#64748b;font-size:13px;}' +
+        '#resultMap{height:420px;border-radius:12px;margin-top:20px;}' +
+        'h2{color:#0f172a;}h3{color:#1e40af;margin-top:0;margin-bottom:12px;}' +
+        '@media(max-width:820px){.results-grid{grid-template-columns:1fr;} }' +
         '</style></head>' +
         '<body>' +
         '<h2>' + dict.outputHeading + '</h2>' +
         '<div class="badge">' + badgeText + '</div>' +
         '<p><strong>' + dict.lblReason + '</strong> ' + aiData.reason[lang] + '</p>' +
         '<p><strong>' + dict.lblSpecialist + '</strong> ' + aiData.specialist[lang] + '</p>' +
+        '<div class="results-grid">' +
+        '<div>' +
         '<h3>' + dict.facilitiesHeading + '</h3>' +
         hospitalsHTML +
-        ((aiData.pharmacies && aiData.pharmacies.length) ? ('<h3>' + dict.pharmaciesHeading + '</h3>' + pharmaciesHTML) : '') +
-        '<h3>' + dict.mapHeading + '</h3>' +
+        '</div>' +
+        '<div>' +
+        '<h3>' + dict.pharmaciesHeading + '</h3>' +
+        pharmaciesHTML +
+        '</div>' +
+        '</div>' +
+        '<h3 style="margin-top:24px;">' + dict.mapHeading + '</h3>' +
         '<div id="resultMap"></div>' +
         '<script>' +
         'var map=L.map("resultMap").setView([' + centerLat + ',' + centerLng + '],13);' +
@@ -371,8 +417,10 @@ function openResultInNewTab(aiData, lang) {
 
 function updateOutputUIValues(aiData, lang) {
     const dict = dictionary[lang];
-    document.getElementById('outputPanel').style.opacity = "1";
-    document.getElementById('outputPanel').style.pointerEvents = "auto";
+    const outputPanel = document.getElementById('outputPanel');
+    if (!outputPanel) return;
+    outputPanel.style.opacity = "1";
+    outputPanel.style.pointerEvents = "auto";
 
     const badge = document.getElementById('urgencyBadge');
     badge.style.display = "inline-block";
@@ -439,4 +487,3 @@ function updateOutputUIValues(aiData, lang) {
         osmMap.fitBounds(bounds, { padding: [50, 50] });
     }
 }
-

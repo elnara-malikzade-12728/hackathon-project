@@ -1484,9 +1484,10 @@ def get_hospitals():
         return jsonify({"status": "success", "hospitals": sanitize_hospital_output(hospitals[:5])})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+setup_database_automatically()
+if RAG_AVAILABLE:
+    build_index()     
 
 if __name__ == '__main__':
-    setup_database_automatically()
-    if RAG_AVAILABLE:
-        build_index() 
     app.run(debug=True, port=5005)

@@ -15,12 +15,23 @@ body {
     padding: 20px; 
 }
 
-.top-bar { 
+.navbar { 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     max-width: 1100px; 
     margin: 0 auto 20px auto; 
+    padding: 12px 18px;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
+}
+
+.navbar-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .lang-selector select { 
@@ -35,7 +46,7 @@ body {
     max-width: 1100px; 
     margin: 0 auto; 
     display: grid; 
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr; 
     gap: 20px; 
 }
 
@@ -114,11 +125,54 @@ button:hover {
     border-radius: 6px; 
     background: #fff;
 }
+.patient-profile-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.patient-profile-row input, 
+.patient-profile-row select, 
+.full-width-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.full-width-input {
+    margin-bottom: 15px;
+}
+
+.patient-profile-row input:focus, 
+.patient-profile-row select:focus, 
+.full-width-input:focus,
+textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
 
 .urgency-RED { background-color: var(--red); }
 .urgency-YELLOW { background-color: var(--yellow); }
 .urgency-GREEN { background-color: var(--green); }
 
+.footer {
+    max-width: 1100px;
+    margin: 30px auto 10px;
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+}
+
 @media(max-width: 768px) { 
     .container { grid-template-columns: 1fr; } 
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }

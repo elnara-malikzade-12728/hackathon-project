@@ -776,7 +776,7 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None, patient_conte
             If retrieved evidence contradicts your assessment, the evidence has priority.
 
             ==== PATIENT SYMPTOMS ====
-            {symptoms}
+            {text}
 
             ==== YOUR DECISION PROCESS ====
             1. Read symptoms carefully.

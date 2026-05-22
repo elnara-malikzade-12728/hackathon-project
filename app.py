@@ -715,6 +715,10 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None, patient_conte
         age_context = patient_context.get('age') if patient_context else None
         gender_context = patient_context.get('gender') if patient_context else ''
         chronic_context = patient_context.get('chronic_text') if patient_context else ''
+        patient_context = patient_context or {}
+        age = patient_context.get('age', 'Unknown')
+        gender = patient_context.get('gender', 'Unknown')
+        chronic = patient_context.get('chronic_text', 'None reported')
 
         # RAG: simptoma uyğun tibbi qaydaları al
         rag_rules    = retrieve_rules(text, top_k=5) if RAG_AVAILABLE else []

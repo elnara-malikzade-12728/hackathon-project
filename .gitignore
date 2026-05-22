@@ -5,6 +5,8 @@
 venv/
 .venv/
 
+.env
+
 # --- PYTHON RUNTIMES ---
 __pycache__/
 *.pyc

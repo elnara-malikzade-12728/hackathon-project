@@ -2,26 +2,29 @@ const dictionary = {
     az: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diaqnostik Giriş Sistemi", inputSub: "Simptomlarınızı sərbəst şəkildə yazın:",
         placeholder: "Məsələn: Qəfil sinə ağrısı başladı, nəfəs almaq çətindir...", checkboxText: "Bunun rəsmi tibbi məsləhət olmadığını və bir AI simulyasiyası olduğunu anlayıram.",
-        btnText: "Təhlil Et & Xəritəni Qur", btnLoading: "Simptomlar tehlil olunur ve yaxın tibb məntəqələri siyahısı yüklənir...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (112) zəng edin.",
+        btnText: "Təhlil Et & Xəritəni Qur", btnLoading: "Simptomlar tehlil olunur ve yaxın tibb məntəqələri siyahısı yüklənir...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (103) zəng edin.",
         outputHeading: "Klinik Qiymətləndirmə Paneli", lblReason: "Səbəb:", lblSpecialist: "Məsləhət Görülən Həkim:", facilitiesHeading: "Yaxın Hospitals/Klinikalar (Təkliflər)", mapHeading: "OpenStreetMap - İnteraktiv Xəritə",
         statusRed: "🔴 TƏCİLİ - Qırmızı Status", statusYellow: "🟡 VACİB - Sarı Status", statusGreen: "🟢 Stabil - Yaşıl Status", erOpen: "🔴 24/7 Təcili Yardım Var", erClosed: "⏰ Yalnız İş Saatları", kmAway: "km",
-        locActive: "📍 Mövqe sinxronizasiyası aktivdir. Hazırkı mövqeyiniz yüklənir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart koordinatlara geri dönüldü."
+        locActive: "📍 Mövqe sinxronizasiyası aktivdir. Hazırkı mövqeyiniz yüklənir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart koordinatlara geri dönüldü.",
+        agePlh: "Yaşınız (Məs: 35)", genNone: "Cinsiyyət (Seçilməyib)", genM: "Kişi", genF: "Qadın", chronicPlh: "Xroniki xəstəliklər (Məs: Diabet, Astma... Yoxdursa boş buraxın)"
     },
     en: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Diagnostic Input Engine", inputSub: "Describe your symptoms in plain language:",
         placeholder: "Example: Experiencing sudden sharp chest pain and tightness...", checkboxText: "I understand this is an AI hackathon simulation and not official medical advice.",
-        btnText: "Analyze & Load Map", btnLoading: "Analyzing symptoms and loading nearby medical facilities' list...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 112 immediately.",
+        btnText: "Analyze & Load Map", btnLoading: "Analyzing symptoms and loading nearby medical facilities' list...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 103 immediately.",
         outputHeading: "Clinical Assessment Dashboard", lblReason: "Clinical Reason:", lblSpecialist: "Direct Route Referral:", facilitiesHeading: "Nearby Hospitals/Clinics (Suggested)", mapHeading: "OpenStreetMap - Interactive Map",
         statusRed: "RED EMERGENCY CARE STATUS", statusYellow: "YELLOW URGENT DISPATCH REQUIRED", statusGreen: "GREEN LOW URGENCY PROFILE", erOpen: "🔴 Emergency Services Operational", erClosed: "⏰ Clinic Hours Apply", kmAway: "km",
-        locActive: "📍 Location sync active: your current position is being used.", locDenied: "🔒 Geolocation blocked. Fallback coordinates are active."
+        locActive: "📍 Location sync active: your current position is being used.", locDenied: "🔒 Geolocation blocked. Fallback coordinates are active.",
+        agePlh: "Age (e.g. 35)", genNone: "Gender (Not specified)", genM: "Male", genF: "Female", chronicPlh: "Chronic conditions (e.g. Diabetes... Leave empty if none)"
     },
     ru: {
         mainTitle: "🏥 AI SymptomTriage", inputHeading: "Система Диагностики", inputSub: "Опишите ваши симптомы в свободной форме:",
         placeholder: "Например: Началась внезапная острая боль в груди, трудно дышать...", checkboxText: "Я понимаю, что это симуляция AI для хакатона и не является официальной медицинской консультацией.",
-        btnText: "Анализировать & Загрузить Карту", btnLoading: "Анализ симптомов и загрузка списка ближайших медицинских учреждений...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 112.",
+        btnText: "Анализировать & Загрузить Карту", btnLoading: "Анализ симптомов и загрузка списка ближайших медицинских учреждений...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 103.",
         outputHeading: "Панель Клинической Оценки", lblReason: "Причина:", lblSpecialist: "Рекомендуемый Специалист:", facilitiesHeading: "Ближайшие Больницы/Клиники (Рекомендации)", mapHeading: "OpenStreetMap - Интерактивная Карта",
         statusRed: "🔴 СРОЧНО - Красный Статус", statusYellow: "🟡 ВНИМАНИЕ - Желтый Статус", statusGreen: "🟢 Стабильно - Зеленый Статус", erOpen: "🔴 Есть Экстренная Помощь", erClosed: "⏰ Только в рабочие часы", kmAway: "км",
-        locActive: "📍 Геопозиция синхронизирована: используется ваше текущее положение.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты."
+        locActive: "📍 Геопозиция синхронизирована: используется ваше текущее положение.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты.",
+        agePlh: "Возраст (напр. 35)", genNone: "Пол (Не указан)", genM: "Мужской", genF: "Женский", chronicPlh: "Хронические заболевания (напр. Диабет... Оставьте пустым, если нет)"
     }
 };
 
@@ -141,6 +144,11 @@ function switchLanguageInterface() {
     document.getElementById('inputSub').innerText = dict.inputSub;
     document.getElementById('symptomsInput').placeholder = dict.placeholder;
     document.getElementById('checkboxText').innerText = dict.checkboxText;
+    document.getElementById('ageInput').placeholder = dict.agePlh;
+    document.getElementById('optGenNone').innerText = dict.genNone;
+    document.getElementById('optGenM').innerText = dict.genM;
+    document.getElementById('optGenF').innerText = dict.genF;
+    document.getElementById('chronicInput').placeholder = dict.chronicPlh;
     
     document.getElementById('submitBtn').innerText = dict.btnText;
     document.getElementById('disclaimerText').innerHTML = dict.disclaimer;
@@ -171,8 +179,17 @@ function runTriagePipeline() {
     btn.disabled = true; btn.innerText = dictionary[lang].btnLoading;
 
     const submitData = () => {
+        const ageVal = document.getElementById('ageInput').value;
+        const genderVal = document.getElementById('genderInput').value;
+        const chronicVal = document.getElementById('chronicInput').value.trim();
+        const parsedAge = ageVal === '' ? null : Number(ageVal);
+
         const payloadBody = {
             symptoms: symptoms,
+            age: Number.isFinite(parsedAge) ? parsedAge : null,
+            gender: genderVal || "",
+            chronic_conditions: chronicVal,
+            use_specialty: true,
             latitude: typeof hardwareLat !== 'undefined' ? hardwareLat : 40.3700,
             longitude: typeof hardwareLng !== 'undefined' ? hardwareLng : 49.8372
         };

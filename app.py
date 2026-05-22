@@ -42,14 +42,11 @@ def load_local_env(path='.env'):
 
 configure_output_encoding()
 load_local_env()
-
-
 app = Flask(__name__)
 DB_FILE = 'ai_auto_map_audit.db'
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 USE_AI_SYMPTOMS = os.environ.get('USE_AI_SYMPTOMS', 'false').lower() in ('1', 'true', 'yes')
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
 SPECIALTY_SIGNAL_MAP = {
     'dentist': {
         'high': [
@@ -131,6 +128,33 @@ SPECIALTY_SIGNAL_MAP = {
         'medium': [
             'burun axması', 'runny nose', 'udqunma', 'swallowing', 'səs batması', 'насморк', 'глотание'
         ]
+    },
+    'pediatrician': {
+        'high': [
+            'uşaq', 'körpə', 'pediatr', 'child', 'baby', 'infant', 'pediatrician', 
+            'ребенок', 'малыш', 'педиатр'
+        ],
+        'medium': [
+            'ağlamaq', 'süd', 'crying', 'breastfeeding', 'плач', 'кормление'
+        ]
+    },
+    'gynecologist': {
+        'high': [
+            'hamilə', 'aybaşı', 'menstruasiya', 'ginekoloq', 'pregnant', 'pregnancy', 
+            'period', 'menstruation', 'gynecologist', 'беременность', 'менструация', 'гинеколог'
+        ],
+        'medium': [
+            'axıntı', 'discharge', 'qasıq', 'pelvic', 'выделения'
+        ]
+    },
+    'urologist': {
+        'high': [
+            'böyrək', 'sidik', 'uroloq', 'kidney', 'urine', 'urination', 'urologist', 
+            'почка', 'моча', 'уролог'
+        ],
+        'medium': [
+            'yanma', 'tez-tez sidiyə getmə', 'burning', 'frequent urination', 'жжение при мочеиспускании'
+        ]
     }
 }
 
@@ -139,7 +163,11 @@ SPECIALTY_KEYWORD_MAP = {
     for specialty, signals in SPECIALTY_SIGNAL_MAP.items()
 }
 
-SPECIALTY_PRIORITY = ['cardiologist', 'neurologist', 'ophthalmologist', 'otolaryngologist', 'gastroenterologist', 'orthopedic', 'dentist', 'dermatologist']
+SPECIALTY_PRIORITY = [
+    'cardiologist', 'pediatrician', 'gynecologist', 'neurologist', 
+    'ophthalmologist', 'otolaryngologist', 'gastroenterologist', 
+    'urologist', 'orthopedic', 'dentist', 'dermatologist'
+]
 ALLOWED_SPECIALTIES = set(SPECIALTY_SIGNAL_MAP.keys()) | {'general'}
 
 RED_URGENCY_PHRASES = [
@@ -147,11 +175,10 @@ RED_URGENCY_PHRASES = [
     'difficulty breathing', 'severe bleeding', 'cannot stop bleeding',
     'uncontrollable bleeding', 'lost consciousness', 'unconscious', 'seizure',
     'stroke', 'paralysis', 'face droop', 'facial droop', 'anaphylaxis',
-    'chemical', 'chemical burn', 'kimyəvi', 'yanıq', 'korluq', 'görmənin itməsi', # Yeni əlavələr
+    'chemical', 'chemical burn', 'kimyəvi', 'yanıq', 'korluq', 'görmənin itməsi',
     'şüur itkisi', 'nəfəs ala bilmir', 'nəfəs ala bilmirəm', 'dayanmayan qanaxma',
     'kəskin iflic', 'инсульт', 'потеря сознания', 'остановка сердца', 'химический ожог'
 ]
-
 YELLOW_URGENCY_PHRASES = [
     'chest tightness', 'sinə sıxıntısı', 'döş qəfəsində sıxıntı', 'arrhythmia',
     'aritmiya', 'palpitations', 'irregular heartbeat', 'sprain', 'burxdum',
@@ -160,11 +187,42 @@ YELLOW_URGENCY_PHRASES = [
     'severe abdominal pain', 'morning stiffness', 'şiddətli tutulma', 'xırtıltı',
     'ağıl dişi', 'wisdom tooth', 'qulağa vuran ağrı', 'radiates to my ear'
 ]
-
 MILD_QUALIFIERS = [
     'mild', 'slight', 'light', 'yüngül', 'az', 'stabil', 'minor'
 ]
+URGENCY_RANK = {'GREEN': 0, 'YELLOW': 1, 'RED': 2}
 
+PEDIATRIC_ALERT_PHRASES = [
+    'qızdırma', 'fever', '38', '38.5', '39', 'qus', 'vomit', 'vomiting',
+    'ishal', 'diarrhea', 'ağlayır', 'persistent crying', 'qulaq', 'ear',
+    'halsız', 'lethargy'
+]
+
+CARDIAC_ALERT_PHRASES = [
+    'sinə', 'döş', 'chest', 'ürək', 'heart', 'aritmiya', 'arrhythmia',
+    'nəfəs darlığı', 'shortness of breath', 'palpitations', 'nizamsız döyüntü'
+]
+
+INFECTION_ALERT_PHRASES = [
+    'qızdırma', 'fever', 'infeksiya', 'infection', 'vomit', 'qus',
+    'diarrhea', 'ishal', 'titreme', 'chills'
+]
+
+CHRONIC_RISK_TERMS = {
+    'cardio': [
+        'hipertoniya', 'yüksək təzyiq', 'təzyiq', 'xolesterin', 'ürək',
+        'hypertension', 'high blood pressure', 'cholesterol', 'heart disease',
+        'гипертония', 'давление', 'холестерин', 'сердце'
+    ],
+    'diabetes': ['diabet', 'diabetes', 'сахарный диабет', 'диабет'],
+    'respiratory': ['astma', 'asma', 'copd', 'koah', 'asthma', 'астма'],
+    'renal': ['böyrək', 'kidney', 'renal', 'почка'],
+    'immunosuppressed': [
+        'onkoloji', 'xərçəng', 'kemoterapi', 'immun çatışmazlığı',
+        'cancer', 'chemotherapy', 'immunosuppressed', 'онкология', 'рак'
+    ],
+    'pregnancy': ['hamilə', 'pregnant', 'pregnancy', 'беремен']
+}
 SPECIALTY_SEARCH_CLAUSES = {
     'dentist': [
         'node["healthcare"="dentist"]',
@@ -226,11 +284,28 @@ SPECIALTY_SEARCH_CLAUSES = {
         'relation["healthcare"="otolaryngologist"]',
         'node["healthcare:specialty"="otolaryngology"]',
         'way["healthcare:specialty"="otolaryngology"]'
+    ],
+    'pediatrician': [
+        'node["healthcare"="pediatrician"]',
+        'way["healthcare"="pediatrician"]',
+        'node["healthcare:specialty"="paediatrics"]',
+        'way["healthcare:specialty"="paediatrics"]',
+        'node["healthcare:specialty"="pediatrics"]'
+    ],
+    'gynecologist': [
+        'node["healthcare"="gynecologist"]',
+        'way["healthcare"="gynecologist"]',
+        'node["healthcare:specialty"="gynaecology"]',
+        'way["healthcare:specialty"="gynaecology"]',
+        'node["healthcare:specialty"="gynecology"]'
+    ],
+    'urologist': [
+        'node["healthcare"="urologist"]',
+        'way["healthcare"="urologist"]',
+        'node["healthcare:specialty"="urology"]',
+        'way["healthcare:specialty"="urology"]'
     ]
 }
-
-# Local fallback dataset for known hospitals / clinics by geographic coordinates.
-# This is used when OpenStreetMap does not return results for the user location.
 NEARBY_HOSPITAL_DATABASE = [
     {'name': 'Baku Central Clinical Hospital', 'address': 'Parliament Ave 76', 'latitude': 40.3669, 'longitude': 49.8254, 'has_emergency': True},
     {'name': 'Republican Clinical Hospital', 'address': 'A.M.Sharifzade Ave', 'latitude': 40.4048, 'longitude': 49.8075, 'has_emergency': True},
@@ -251,7 +326,41 @@ def normalize_symptom_text(text):
     return f" {text} "
 
 
-def detect_specialty_from_symptoms(text):
+def parse_age(value):
+    """Safely parse age from request payload."""
+    try:
+        if value in (None, '', 'Göstərilməyib', 'Not specified'):
+            return None
+        age = int(float(value))
+        if 0 <= age <= 120:
+            return age
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
+def build_patient_context(age=None, gender=None, chronic_conditions=''):
+    """Create patient-level risk context used in triage scoring and specialty routing."""
+    age_value = parse_age(age)
+    gender_text = (gender or '').strip().lower()
+    chronic_text = normalize_symptom_text(chronic_conditions or '')
+
+    risk_flags = {}
+    for flag, terms in CHRONIC_RISK_TERMS.items():
+        risk_flags[flag] = any(term in chronic_text for term in terms)
+
+    return {
+        'age': age_value,
+        'gender': gender_text,
+        'chronic_text': chronic_text.strip(),
+        'risk_flags': risk_flags,
+        'is_infant': age_value is not None and age_value <= 2,
+        'is_child': age_value is not None and age_value <= 14,
+        'is_elderly': age_value is not None and age_value >= 60
+    }
+
+
+def detect_specialty_from_symptoms(text, patient_context=None):
     """Score symptoms and return the most likely specialist domain."""
     text_lower = normalize_symptom_text(text)
     scores = {}
@@ -262,8 +371,33 @@ def detect_specialty_from_symptoms(text):
         score += sum(1 for keyword in signals['medium'] if keyword in text_lower)
         scores[specialty] = score
 
+    if patient_context:
+        # Young children should be routed to pediatrics for mixed acute complaints.
+        if patient_context.get('is_child') and any(term in text_lower for term in PEDIATRIC_ALERT_PHRASES):
+            scores['pediatrician'] = scores.get('pediatrician', 0) + 4
+
+        # Elderly + chest/cardiac symptoms should strongly favor cardiology.
+        if patient_context.get('is_elderly') and any(term in text_lower for term in CARDIAC_ALERT_PHRASES):
+            scores['cardiologist'] = scores.get('cardiologist', 0) + 3
+
+        # Pregnancy context should prioritize gynecology for abdominal/pelvic symptom wording.
+        if (
+            patient_context.get('risk_flags', {}).get('pregnancy') and
+            any(term in text_lower for term in ['abdominal pain', 'qarın ağrısı', 'pelvic', 'qasıq', 'bleeding', 'qanaxma'])
+        ):
+            scores['gynecologist'] = scores.get('gynecologist', 0) + 4
+
+        # Known kidney disease + urinary phrases should favor urology.
+        if (
+            patient_context.get('risk_flags', {}).get('renal') and
+            any(term in text_lower for term in ['sidik', 'urine', 'urination', 'böyrək', 'kidney', 'burning'])
+        ):
+            scores['urologist'] = scores.get('urologist', 0) + 3
+
     max_score = max(scores.values()) if scores else 0
     if max_score <= 0:
+        if patient_context and patient_context.get('is_child'):
+            return 'pediatrician'
         return None
 
     top_specialties = [spec for spec, score in scores.items() if score == max_score]
@@ -273,33 +407,70 @@ def detect_specialty_from_symptoms(text):
     return top_specialties[0]
 
 
-def detect_urgency_from_symptoms(text):
-    """Classify urgency with stricter emergency triggers to reduce false RED labels."""
+def detect_urgency_from_symptoms(text, patient_context=None, detected_specialty=None):
+    """Classify urgency with context-aware escalation using age and chronic risk."""
     text_lower = normalize_symptom_text(text)
 
     if any(phrase in text_lower for phrase in RED_URGENCY_PHRASES):
         return "RED"
+
+    urgency_score = 0
     if any(phrase in text_lower for phrase in YELLOW_URGENCY_PHRASES):
-        return "YELLOW"
+        urgency_score += 2
+
     if any(phrase in text_lower for phrase in MILD_QUALIFIERS):
-        return "GREEN"
-    return "GREEN"
+        urgency_score -= 1
+
+    if patient_context:
+        risk_flags = patient_context.get('risk_flags', {})
+
+        if patient_context.get('is_infant') and any(term in text_lower for term in PEDIATRIC_ALERT_PHRASES):
+            urgency_score += 2
+        elif patient_context.get('is_child') and any(term in text_lower for term in PEDIATRIC_ALERT_PHRASES):
+            urgency_score += 1
+
+        if patient_context.get('is_elderly') and any(term in text_lower for term in CARDIAC_ALERT_PHRASES):
+            urgency_score += 2
+
+        if (risk_flags.get('cardio') or risk_flags.get('diabetes')) and any(term in text_lower for term in CARDIAC_ALERT_PHRASES):
+            urgency_score += 2
+
+        if (risk_flags.get('immunosuppressed') or risk_flags.get('diabetes')) and any(term in text_lower for term in INFECTION_ALERT_PHRASES):
+            urgency_score += 1
+
+        if risk_flags.get('pregnancy') and any(term in text_lower for term in ['qanaxma', 'bleeding', 'qarın ağrısı', 'abdominal pain']):
+            urgency_score += 2
+
+    if detected_specialty in ('cardiologist', 'urologist', 'otolaryngologist') and urgency_score > 0:
+        urgency_score += 1
+
+    return "YELLOW" if urgency_score >= 2 else "GREEN"
 
 
-def get_ai_symptom_assessment(text, city, detected_specialty=None):
+def max_urgency_level(primary, secondary):
+    """Return higher urgency from two labels."""
+    p = str(primary or 'GREEN').upper()
+    s = str(secondary or 'GREEN').upper()
+    return p if URGENCY_RANK.get(p, 0) >= URGENCY_RANK.get(s, 0) else s
+
+
+def get_ai_symptom_assessment(text, city, detected_specialty=None, patient_context=None):
     """Use an OpenAI model to interpret symptoms and return structured triage output."""
     if not USE_AI_SYMPTOMS or not OPENAI_API_KEY or not client:
         return None
 
     try:
         client.api_key = OPENAI_API_KEY
+        age_context = patient_context.get('age') if patient_context else None
+        gender_context = patient_context.get('gender') if patient_context else ''
+        chronic_context = patient_context.get('chronic_text') if patient_context else ''
+
         prompt = (
             "You are a highly sensitive and strict multilingual medical triage assistant.\n"
             "Input can be Azerbaijani, English, Russian, or mixed.\n"
             "Always analyze the context of the sentence, not just isolated words. Detect BOTH urgency and the most relevant specialist.\n\n"
             "Allowed urgency labels: RED, YELLOW, GREEN.\n"
-            "Allowed detected_specialty labels: dentist, dermatologist, cardiologist, ophthalmologist, orthopedic, general.\n\n"
-            "Decision protocol:\n"
+            "Allowed detected_specialty labels: dentist, dermatologist, cardiologist, ophthalmologist, orthopedic, neurologist, gastroenterologist, otolaryngologist, pediatrician, gynecologist, urologist, general.\n\n"            "Decision protocol:\n"
             "1) Detect the dominant clinical domain first, then map to detected_specialty.\n"
             "2) If symptoms clearly point to one organ system, do NOT return general.\n"
             "3) RED is for IMMEDIATE LIFE-THREATENING OR ORGAN-THREATENING emergencies. This includes: severe breathing distress, uncontrolled bleeding, stroke signs, loss of consciousness, seizure, anaphylaxis, suspected heart attack, CHEMICAL BURNS, chemical splash in eyes, sudden complete vision loss, or severe traumatic deformity.\n"
@@ -312,6 +483,20 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None):
             "- Cardiologist: chest tightness, palpitations, arrhythmia.\n"
             "- Orthopedic: sprain, fracture, joint pain/stiffness.\n"
             "- Dentist: tooth/gum pain, wisdom tooth eruption, facial swelling from tooth.\n\n"
+            "- Neurologist: headache, migraine, dizziness, numbness, tremors.\n"
+            "- Gastroenterologist: stomach pain, vomiting, diarrhea, nausea.\n"
+            "- Otolaryngologist: ear/nose/throat pain, runny nose, difficulty swallowing.\n"
+            "- Pediatrician: symptoms specifically mentioning a child, baby, or infant.\n"
+            "- Gynecologist: pregnancy, menstruation issues, pelvic pain in females.\n"
+            "- Urologist: kidney pain, painful or frequent urination, blood in urine.\n"
+            "Context-aware risk rules:\n"
+            "- Age <= 14: if fever + pain + persistent crying or vomiting/diarrhea, prioritize pediatrician and at least YELLOW when symptoms are ongoing.\n"
+            "- Age >= 60 with cardiac symptoms or cardio chronic diseases (hypertension/cholesterol/heart disease): avoid GREEN unless clearly mild.\n"
+            "- Diabetes/immunosuppression with infection-like symptoms should increase urgency by one level when clinically plausible.\n"
+            "- Never ignore chronic conditions and age when assigning urgency.\n"
+            f"Patient age: {age_context if age_context is not None else 'unknown'}\n"
+            f"Patient gender: {gender_context or 'unknown'}\n"
+            f"Chronic conditions: {chronic_context or 'none'}\n"
             f"Server-side heuristic specialty hint: {detected_specialty or 'general'}\n"
             f"Symptoms: {text}\n"
             "Return ONLY valid JSON with keys:\n"
@@ -335,7 +520,6 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None):
         raw = re.sub(r'\s*```$', '', raw)
         parsed = json.loads(raw)
 
-        # Validate returned structure and normalize values
         if isinstance(parsed, dict):
             parsed_specialty = str(parsed.get('detected_specialty', 'general')).strip().lower()
             if parsed_specialty not in ALLOWED_SPECIALTIES:
@@ -435,22 +619,15 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
         ])
 
         overpass_query = '[out:json][timeout:30];(' + '\n'.join([f'  {clause}(around:{radius_m},{lat},{lng});' for clause in search_clauses]) + '\n);\nout center tags;'
-
         response = requests.get(
             overpass_url,
             params={'data': overpass_query},
-            headers={
-                'User-Agent': 'AI-SymptomTriage/1.0',
-                'Accept': 'application/json'
-            },
+            headers={'User-Agent': 'AI-SymptomTriage/1.0', 'Accept': 'application/json'},
             timeout=30
         )
-
         if response.status_code == 200:
             data = response.json()
-
             for element in data.get('elements', []):
-                # Get coordinates
                 if 'center' in element:
                     h_lat = element['center']['lat']
                     h_lng = element['center']['lon']
@@ -460,7 +637,6 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
                 else:
                     continue
                 
-                # Get name and address
                 tags = element.get('tags', {})
                 name = tags.get('name', tags.get('operator', 'Hospital/Clinic'))
                 address_parts = []
@@ -470,15 +646,12 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
                     address_parts.append(tags.get('addr:housenumber'))
                 address = ', '.join(address_parts).strip() or 'Address unavailable'
 
-                # Calculate distance correctly
                 try:
                     distance = geodesic((lat, lng), (h_lat, h_lng)).km
                 except:
                     distance = 0.0
 
-                # Check if has emergency services
-                has_emergency = tags.get('emergency') == 'yes' or tags.get('amenity') == 'hospital'
-                
+                has_emergency = tags.get('emergency') == 'yes' or tags.get('amenity') == 'hospital'                
                 hospitals.append({
                     'name': name,
                     'address': address,
@@ -488,7 +661,6 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
                     'has_emergency': has_emergency
                 })
             
-            # Sort hospitals by distance if any results exist
             hospitals.sort(key=lambda x: x['distance'])
             hospitals = hospitals[:5]
         else:
@@ -504,7 +676,6 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
 def get_nearest_health_suggestions(lat, lng, city=None):
     """Return nearest hospital/clinic suggestions based on actual user coordinates."""
     suggestions = []
-
     for hospital in NEARBY_HOSPITAL_DATABASE:
         try:
             distance = geodesic((lat, lng), (hospital['latitude'], hospital['longitude'])).km
@@ -522,16 +693,25 @@ def get_nearest_health_suggestions(lat, lng, city=None):
     suggestions.sort(key=lambda x: x['distance'])
     return suggestions[:5]
 
-def analyze_symptoms_and_generate_map_ai(text, city, specialty=None):
+def analyze_symptoms_and_generate_map_ai(text, city, specialty=None, patient_context=None):
     """Consolidated logic analyzing symptom context and building map arrays."""
-    detected_specialty = specialty or detect_specialty_from_symptoms(text)
+    detected_specialty = specialty or detect_specialty_from_symptoms(text, patient_context=patient_context)
 
-    # If enabled, try the AI-powered symptom analysis first
-    ai_result = get_ai_symptom_assessment(text, city, detected_specialty=detected_specialty)
+    ai_result = get_ai_symptom_assessment(
+        text,
+        city,
+        detected_specialty=detected_specialty,
+        patient_context=patient_context
+    )
     if ai_result is not None:
+        deterministic_urgency = detect_urgency_from_symptoms(
+            text,
+            patient_context=patient_context,
+            detected_specialty=ai_result.get('detected_specialty') or detected_specialty
+        )
+        ai_result['urgency'] = max_urgency_level(ai_result.get('urgency'), deterministic_urgency)
         return ai_result
     
-    # Generate hospital nodes matching the user's automatically detected location
     if city == "Baku":
         ai_hospitals = [
             {"name_en": "Baku Central Clinical Hospital", "name_az": "Mərkəzi Klinik Xəstəxana", "name_ru": "Центральная Клиническая Больница", "address_en": "76 Parliament Ave", "address_az": "Parlament Prospekti 76", "address_ru": "Парламентский проспект 76", "offset_x": -60, "offset_y": -45, "er": 1},
@@ -551,7 +731,7 @@ def analyze_symptoms_and_generate_map_ai(text, city, specialty=None):
         ]
         roads = []
 
-    urgency = detect_urgency_from_symptoms(text)
+    urgency = detect_urgency_from_symptoms(text, patient_context=patient_context, detected_specialty=detected_specialty)
     if urgency == "RED":
         spec_en, spec_az, spec_ru = "Emergency Physician", "Təcili Tibbi Yardım Həkimi", "Врач Скорой Помощи"
         reas_en = "Potential life-threatening symptoms detected. Seek emergency services immediately."
@@ -624,6 +804,27 @@ def analyze_symptoms_and_generate_map_ai(text, city, specialty=None):
         reas_en = "Ear, nose, or throat symptoms detected."
         reas_az = "Qulaq, burun və ya boğazla bağlı simptomlar aşkarlandı."
         reas_ru = "Обнаружены симптомы, связанные с ухом, горлом или носом."
+    elif detected_specialty == 'pediatrician':
+        spec_en = "Pediatrician"
+        spec_az = "Pediatr"
+        spec_ru = "Педиатр"
+        reas_en = "Symptoms indicate a need for pediatric care for a child or infant."
+        reas_az = "Simptomlar uşaq və ya körpə üçün pediatr müayinəsini tələb edir."
+        reas_ru = "Симптомы указывают на необходимость педиатрической помощи для ребенка."
+    elif detected_specialty == 'gynecologist':
+        spec_en = "Gynecologist"
+        spec_az = "Ginekoloq"
+        spec_ru = "Гинеколог"
+        reas_en = "Symptoms are related to female reproductive health or pregnancy."
+        reas_az = "Simptomlar qadın reproduktiv sağlamlığı və ya hamiləliklə bağlıdır."
+        reas_ru = "Симптомы связаны с женским репродуктивным здоровьем или беременностью."
+    elif detected_specialty == 'urologist':
+        spec_en = "Urologist"
+        spec_az = "Uroloq"
+        spec_ru = "Уролог"
+        reas_en = "Urinary tract or kidney symptoms suggest a urological consultation."
+        reas_az = "Sidik yolları və ya böyrək şikayətləri uroloq məsləhətini göstərir."
+        reas_ru = "Симптомы мочевыводящих путей или почек требуют консультации уролога."
 
     return {
         "city": city,
@@ -649,16 +850,32 @@ def process_triage():
         symptoms = data.get('symptoms', '')
         lat = float(data.get('latitude', 40.3700))
         lng = float(data.get('longitude', 49.8372))
+        age = data.get('age')
+        gender = data.get('gender')
+        chronic = data.get('chronic_conditions', '')
+        patient_context = build_patient_context(age=age, gender=gender, chronic_conditions=chronic)
+
+        full_case_text = (
+            f"Age: {patient_context.get('age') if patient_context.get('age') is not None else 'unknown'}, "
+            f"Gender: {patient_context.get('gender') or 'unknown'}, "
+            f"Chronic conditions: {chronic or 'none'}. "
+            f"Symptoms: {symptoms}"
+        )
         
         # 1. Automatically track user location city based on incoming telemetry coordinates
         detected_city = get_city_from_coordinates(lat, lng)
         
         # 2. Always detect likely specialist; allow request flag to force specialty-focused map query.
-        detected_specialty = detect_specialty_from_symptoms(symptoms)
+        detected_specialty = detect_specialty_from_symptoms(symptoms, patient_context=patient_context)
         use_specialty = bool(data.get('use_specialty', False))
         specialty_for_search = detected_specialty if (use_specialty or detected_specialty) else None
 
-        ai_payload = analyze_symptoms_and_generate_map_ai(symptoms, detected_city, specialty=detected_specialty)
+        ai_payload = analyze_symptoms_and_generate_map_ai(
+            symptoms,
+            detected_city,
+            specialty=detected_specialty,
+            patient_context=patient_context
+        )
         hospitals = get_hospitals_from_openstreetmap(lat, lng, radius_km=10, specialty=specialty_for_search)
         if not hospitals:
             hospitals = get_nearest_health_suggestions(lat, lng, detected_city)
@@ -674,7 +891,7 @@ def process_triage():
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO triage_logs (symptoms_text, urgency_level, detected_city, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
-                       (symptoms, ai_payload['urgency'], detected_city, lat, lng))
+                       (full_case_text, ai_payload['urgency'], detected_city, lat, lng))
         conn.commit()
         conn.close()
         

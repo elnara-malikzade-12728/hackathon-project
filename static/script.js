@@ -5,6 +5,7 @@ const dictionary = {
         btnText: "Təhlil Et & Xəritəni Qur", btnLoading: "Simptomlar tehlil olunur ve yaxın tibb məntəqələri siyahısı yüklənir...", disclaimer: "<strong>DİQQƏT:</strong> Bu proqram AI hackathon prototipidir. Ciddi və həyati təhlükə zamanı dərhal yerli təcili yardım xidmətinə (103) zəng edin.",
         outputHeading: "Klinik Qiymətləndirmə Paneli", lblReason: "Səbəb:", lblSpecialist: "Məsləhət Görülən Həkim:", facilitiesHeading: "Yaxın Hospitals/Klinikalar (Təkliflər)", mapHeading: "OpenStreetMap - İnteraktiv Xəritə",
         statusRed: "🔴 TƏCİLİ - Qırmızı Status", statusYellow: "🟡 VACİB - Sarı Status", statusGreen: "🟢 Stabil - Yaşıl Status", erOpen: "🔴 24/7 Təcili Yardım Var", erClosed: "⏰ Yalnız İş Saatları", kmAway: "km",
+        pharmaciesHeading: "Yaxın Apteklər (Əlavə)",
         locActive: "📍 Mövqe sinxronizasiyası aktivdir. Hazırkı mövqeyiniz yüklənir.", locDenied: "🔒 Mövqe icazəsi verilmədi. Standart koordinatlara geri dönüldü.",
         agePlh: "Yaşınız (Məs: 35)", genNone: "Cinsiyyət (Seçilməyib)", genM: "Kişi", genF: "Qadın", chronicPlh: "Xroniki xəstəliklər (Məs: Diabet, Astma... Yoxdursa boş buraxın)"
     },
@@ -14,6 +15,7 @@ const dictionary = {
         btnText: "Analyze & Load Map", btnLoading: "Analyzing symptoms and loading nearby medical facilities' list...", disclaimer: "<strong>CRITICAL NOTICE:</strong> This application is an AI prototype mockup template. If experiencing emergency threats, dial 103 immediately.",
         outputHeading: "Clinical Assessment Dashboard", lblReason: "Clinical Reason:", lblSpecialist: "Direct Route Referral:", facilitiesHeading: "Nearby Hospitals/Clinics (Suggested)", mapHeading: "OpenStreetMap - Interactive Map",
         statusRed: "RED EMERGENCY CARE STATUS", statusYellow: "YELLOW URGENT DISPATCH REQUIRED", statusGreen: "GREEN LOW URGENCY PROFILE", erOpen: "🔴 Emergency Services Operational", erClosed: "⏰ Clinic Hours Apply", kmAway: "km",
+        pharmaciesHeading: "Nearby Pharmacies (Additional)",
         locActive: "📍 Location sync active: your current position is being used.", locDenied: "🔒 Geolocation blocked. Fallback coordinates are active.",
         agePlh: "Age (e.g. 35)", genNone: "Gender (Not specified)", genM: "Male", genF: "Female", chronicPlh: "Chronic conditions (e.g. Diabetes... Leave empty if none)"
     },
@@ -23,6 +25,7 @@ const dictionary = {
         btnText: "Анализировать & Загрузить Карту", btnLoading: "Анализ симптомов и загрузка списка ближайших медицинских учреждений...", disclaimer: "<strong>ВАЖНОЕ УВЕДОМЛЕНИЕ:</strong> Это приложение является прототипом AI для хакатона. При угрозе жизни немедленно звоните 103.",
         outputHeading: "Панель Клинической Оценки", lblReason: "Причина:", lblSpecialist: "Рекомендуемый Специалист:", facilitiesHeading: "Ближайшие Больницы/Клиники (Рекомендации)", mapHeading: "OpenStreetMap - Интерактивная Карта",
         statusRed: "🔴 СРОЧНО - Красный Статус", statusYellow: "🟡 ВНИМАНИЕ - Желтый Статус", statusGreen: "🟢 Стабильно - Зеленый Статус", erOpen: "🔴 Есть Экстренная Помощь", erClosed: "⏰ Только в рабочие часы", kmAway: "км",
+        pharmaciesHeading: "Ближайшие Аптеки (Дополнительно)",
         locActive: "📍 Геопозиция синхронизирована: используется ваше текущее положение.", locDenied: "🔒 Доступ к геопозиции ограничен. Используются стандартные координаты.",
         agePlh: "Возраст (напр. 35)", genNone: "Пол (Не указан)", genM: "Мужской", genF: "Женский", chronicPlh: "Хронические заболевания (напр. Диабет... Оставьте пустым, если нет)"
     }
@@ -304,6 +307,14 @@ function openResultInNewTab(aiData, lang) {
         '</span></div>'
     ).join('');
 
+    const pharmaciesHTML = (aiData.pharmacies || []).map((p, i) =>
+        '<div style="border:1px solid #d8f5ea;border-radius:8px;padding:10px;margin-bottom:8px;background:#f8fffb;">' +
+        '<strong>' + (i + 1) + '. ' + p.name + '</strong><br>' +
+        '<small>' + p.address + '</small><br>' +
+        '<small><b>' + p.distance + ' km</b></small>' +
+        '</div>'
+    ).join('');
+
     const centerLat = hardwareLat;
     const centerLng = hardwareLng;
     const hospitalsJSON = JSON.stringify(aiData.hospitals || []);
@@ -326,6 +337,7 @@ function openResultInNewTab(aiData, lang) {
         '<p><strong>' + dict.lblSpecialist + '</strong> ' + aiData.specialist[lang] + '</p>' +
         '<h3>' + dict.facilitiesHeading + '</h3>' +
         hospitalsHTML +
+        ((aiData.pharmacies && aiData.pharmacies.length) ? ('<h3>' + dict.pharmaciesHeading + '</h3>' + pharmaciesHTML) : '') +
         '<h3>' + dict.mapHeading + '</h3>' +
         '<div id="resultMap"></div>' +
         '<script>' +

@@ -5,6 +5,7 @@ import re
 import sys
 import sqlite3
 import requests
+from rag_pipeline import build_index, retrieve_rules, format_evidence, get_max_urgency_from_evidence, RAG_AVAILABLE
 from flask import Flask, render_template, request, jsonify
 from geopy.distance import geodesic
 from openai import OpenAI
@@ -201,9 +202,10 @@ RED_URGENCY_PHRASES = [
     'uncontrollable bleeding', 'lost consciousness', 'unconscious', 'seizure',
     'stroke', 'paralysis', 'face droop', 'facial droop', 'anaphylaxis',
     'chemical', 'chemical burn', 'kimyəvi', 'yanıq', 'korluq', 'görmənin itməsi',
-    'şüur itkisi', 'nəfəs ala bilmir', 'nəfəs ala bilmirəm', 'dayanmayan qanaxma',
+    'şüur itkisi', 'nəfəs ala bilmir', 'nəfəs ala bilmirəm', 'dayanmayan qanaxma', 'kəskin',
     'kəskin iflic', 'инсульт', 'потеря сознания', 'остановка сердца', 'химический ожог'
 ]
+
 YELLOW_URGENCY_PHRASES = [
     'chest tightness', 'sinə sıxıntısı', 'döş qəfəsində sıxıntı', 'arrhythmia',
     'aritmiya', 'palpitations', 'irregular heartbeat', 'sprain', 'burxdum',
@@ -706,45 +708,83 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None, patient_conte
         gender_context = patient_context.get('gender') if patient_context else ''
         chronic_context = patient_context.get('chronic_text') if patient_context else ''
 
-        prompt = (
-            "You are a strict multilingual medical TRIAGE classifier for a prototype app.\n"
-            "Input can be Azerbaijani, English, Russian, or mixed.\n"
-            "Do not give treatment. Only classify urgency and specialist using conservative safety logic.\n\n"
-            "Allowed urgency labels: RED, YELLOW, GREEN.\n"
-            "Allowed detected_specialty labels: dentist, dermatologist, cardiologist, ophthalmologist, orthopedic, neurologist, gastroenterologist, otolaryngologist, pulmonologist, pediatrician, gynecologist, urologist, endocrinologist, general.\n\n"
-            "Primary objective: avoid dangerous under-triage. If uncertain between two urgency levels, choose the higher one.\n\n"
-            "Decision tree:\n"
-            "STEP 1 (RED - immediate danger):\n"
-            "- Assign RED for respiratory distress / cannot breathe / severe shortness of breath.\n"
-            "- Assign RED for stroke signs, seizure, loss of consciousness, severe confusion with collapse risk, uncontrolled bleeding, severe trauma/deformity, suspected anaphylaxis, chemical burn or chemical splash in eye, or sudden complete vision loss.\n"
-            "- Pediatric hard rule: child/adolescent + asthma/wheezing + breathing difficulty => RED.\n"
-            "- Diabetes hard rule: diabetic patient + unconsciousness/seizure/persistent vomiting/fruity breath/severe confusion/cannot wake => RED.\n\n"
-            "STEP 2 (YELLOW - urgent same-day care):\n"
-            "- Assign YELLOW for acute but currently non-collapsing symptoms: arrhythmia/palpitations/chest tightness on exertion, high fever with ongoing complaints, painful swollen sprain/fracture, severe ENT/dental/eye inflammation, significant abdominal pain, or worsening chronic condition.\n"
-            "- Diabetes hard floor: diabetes history + tremor/cold sweat/chills/dizziness/weakness/palpitations/nausea-vomiting => at least YELLOW.\n"
-            "- Elderly hard floor: age >= 60 with cardiac complaints should not be GREEN unless clearly mild and transient.\n\n"
-            "STEP 3 (GREEN - stable outpatient):\n"
-            "- Assign GREEN only for mild stable complaints with no RED/YELLOW triggers.\n\n"
-            "Specialty mapping rules:\n"
-            "- Resolve dominant organ system first, then choose one specialist.\n"
-            "- Endocrinologist: diabetes, blood-glucose instability, hypo/hyperglycemia, insulin/metabolic endocrine patterns.\n"
-            "- Pulmonologist: asthma/wheezing/respiratory complaints. For children with mixed acute symptoms, pediatrician may be primary but urgency rules stay strict.\n"
-            "- Cardiologist: chest pressure/palpitations/arrhythmia/cardiovascular patterns.\n"
-            "- Neurologist: headache/migraine/numbness/focal neuro patterns; avoid neurologist if diabetes-metabolic instability better explains symptoms.\n"
-            "- Gynecologist and Urologist should follow sex-specific/reproductive/urinary evidence only.\n"
-            "- If one organ-system is clear, do not output general.\n\n"
-            "Output language quality:\n"
-            "- specialist and reason must be clinically coherent with urgency.\n"
-            "- reason must briefly state the trigger in EN/AZ/RU.\n"
-            f"Patient age: {age_context if age_context is not None else 'unknown'}\n"
-            f"Patient gender: {gender_context or 'unknown'}\n"
-            f"Chronic conditions: {chronic_context or 'none'}\n"
-            f"Server-side heuristic specialty hint: {detected_specialty or 'general'}\n"
-            f"Symptoms: {text}\n"
-            "Return ONLY valid JSON with keys:\n"
-            '{"urgency": "RED/YELLOW/GREEN", "specialist": {"en": "...", "az": "...", "ru": "..."}, "reason": {"en": "...", "az": "...", "ru": "..."}, "detected_specialty": "..."}'
-        )
+        # RAG: simptoma uyğun tibbi qaydaları al
+        rag_rules    = retrieve_rules(text, top_k=5) if RAG_AVAILABLE else []
+        rag_evidence = format_evidence(rag_rules)
+        rag_urgency_floor = get_max_urgency_from_evidence(rag_rules)
+        prompt = f"""
+            You are a strict medical TRIAGE AI. Your goal: SAFE triage, avoiding under-triage.
 
+            ==== CRITICAL CONTEXT ====
+            Patient Age: {age} years old
+            Patient Gender: {gender}
+            Chronic Conditions: {chronic or 'none'}
+
+            ==== MULTI-FACTOR ASSESSMENT FRAMEWORK ====
+
+            For RED urgency, evaluate these dimensions:
+            1. RESPIRATORY: Any breathing difficulty? Wheezing, stridor, gasping, "cannot breathe"?
+            2. NEUROLOGICAL: Altered consciousness? Seizure? Stroke signs? Severe confusion?
+            3. CARDIOVASCULAR: Chest pressure + SOB? Severe palpitations? Syncope risk?
+            4. TRAUMA/BLEEDING: Uncontrolled bleeding? Severe deformity? Open fracture?
+            5. METABOLIC (if diabetic): Loss of consciousness? Seizure? Fruity breath? Persistent vomiting?
+            6. PEDIATRIC (if child): Breathing trouble + asthma/wheezing? Fever + lethargy + rash?
+            7. CHEMICAL/BURN: Chemical exposure? Eye splash? Severe burn?
+
+            If ANY dimension is HIGH RISK → RED. Do not skip dimensions.
+
+            For YELLOW urgency, evaluate:
+            1. ACUTE INFLAMMATION: High fever? Severe pain? Swollen joint/limb?
+            2. CARDIAC WARNING: Palpitations on exertion? Chest tightness without collapse risk?
+            3. METABOLIC (if diabetic): Tremor + cold sweat? Dizziness + weakness? 
+            4. ELDERLY (60+): ANY cardiac complaint should be YELLOW unless clearly transient and mild.
+            5. PROGRESSIVE WORSENING: Is condition getting worse over hours?
+
+            If condition is acute and uncomfortable → YELLOW. Do not assign GREEN hastily.
+
+            For GREEN urgency:
+            - Mild, stable, NO progression, NO red/yellow flags.
+            - Examples: mild cold, localized rash without fever, minor ache.
+
+            ==== SPECIALTY SELECTION (after urgency) ====
+            Choose ONE dominant system:
+            - Respiratory dominance? → Pulmonologist (or Pediatrician if child)
+            - Cardiac dominance? → Cardiologist
+            - Neurological dominance? → Neurologist
+            - Metabolic/Endocrine dominance? (diabetes, glucose instability) → Endocrinologist
+            - Psychiatric/neuro-behavioral? → General
+            - Organ-specific (skin, GI, etc)? → Appropriate specialist
+            - Reproductive/urinary? → Gynecologist/Urologist (sex-specific)
+
+            Do NOT output "general" if one system clearly dominates.
+
+            ==== RAG EVIDENCE (Authoritative) ====
+            {rag_evidence}
+
+            If retrieved evidence contradicts your assessment, the evidence has priority.
+
+            ==== PATIENT SYMPTOMS ====
+            {symptoms}
+
+            ==== YOUR DECISION PROCESS ====
+            1. Read symptoms carefully.
+            2. Check EVERY RED dimension above. If any HIGH → RED.
+            3. If no RED, check YELLOW dimensions. If any present → YELLOW.
+            4. If neither → GREEN.
+            5. Select specialty by dominant organ system.
+            6. Verify specialty aligns with urgency (RED cardiac → Cardiologist, etc).
+            7. Output brief, clinically coherent reason.
+
+            Return ONLY valid JSON:
+            {{
+                "urgency": "RED or YELLOW or GREEN",
+                "specialist": {{"en": "...", "az": "...", "ru": "..."}},
+                "reason": {{"en": "Brief clinical trigger", "az": "...", "ru": "..."}},
+                "detected_specialty": "exact_specialty_key",
+                "confidence": 0.85,
+                "dimensions_checked": ["respiratory", "cardiac", ...]
+            }}
+            """
         response = client.chat.completions.create(
             model='gpt-4o-mini',
             response_format={ "type": "json_object" },
@@ -772,7 +812,13 @@ def get_ai_symptom_assessment(text, city, detected_specialty=None, patient_conte
                 parsed_specialty = detected_specialty or 'general'
             if parsed_specialty == 'general' and detected_specialty in ALLOWED_SPECIALTIES:
                 parsed_specialty = detected_specialty
-
+            
+            # RAG urgency floor: AI aşağı qiymətləndirirsə düzəlt
+            if rag_urgency_floor:
+                rank = {'RED': 3, 'YELLOW': 2, 'GREEN': 1}
+                if rank.get(rag_urgency_floor, 0) > rank.get(parsed_urgency, 0):
+                    parsed_urgency = rag_urgency_floor
+            
             return {
                 'city': city,
                 'urgency': parsed_urgency,
@@ -885,12 +931,46 @@ def get_hospitals_from_openstreetmap(lat, lng, radius_km=5, specialty=None):
                 
                 tags = element.get('tags', {})
                 name = tags.get('name', tags.get('operator', 'Hospital/Clinic'))
-                address_parts = []
-                if tags.get('addr:street'):
-                    address_parts.append(tags.get('addr:street'))
-                if tags.get('addr:housenumber'):
-                    address_parts.append(tags.get('addr:housenumber'))
-                address = ', '.join(address_parts).strip() or 'Address unavailable'
+                
+            address_parts = []
+            if tags.get('addr:street'):
+                address_parts.append(tags.get('addr:street'))
+            if tags.get('addr:housenumber'):
+                address_parts.append(tags.get('addr:housenumber'))
+            if tags.get('addr:city'):
+                address_parts.append(tags.get('addr:city'))
+            address = ', '.join(filter(None, address_parts)).strip()
+
+            # OSM-də ünvan yoxdursa Nominatim reverse geocoding ilə al
+            if not address:
+                try:
+                    nom_resp = requests.get(
+                        'https://nominatim.openstreetmap.org/reverse',
+                        params={
+                            'lat': h_lat,
+                            'lon': h_lng,
+                            'format': 'json',
+                            'zoom': 18,
+                            'addressdetails': 1
+                        },
+                        headers={'User-Agent': 'AI-SymptomTriage/1.0'},
+                        timeout=5
+                    )
+                    if nom_resp.status_code == 200:
+                        nom_data = nom_resp.json()
+                        nom_addr = nom_data.get('address', {})
+                        parts = [
+                            nom_addr.get('road') or nom_addr.get('pedestrian') or nom_addr.get('path'),
+                            nom_addr.get('house_number'),
+                            nom_addr.get('suburb') or nom_addr.get('neighbourhood'),
+                            nom_addr.get('city') or nom_addr.get('town')
+                        ]
+                        address = ', '.join(filter(None, parts)).strip()
+                except Exception:
+                    pass
+
+            if not address:
+                address = f"{round(h_lat, 4)}, {round(h_lng, 4)}"
 
                 try:
                     distance = geodesic((lat, lng), (h_lat, h_lng)).km
@@ -1348,4 +1428,6 @@ def get_hospitals():
 
 if __name__ == '__main__':
     setup_database_automatically()
+    if RAG_AVAILABLE:
+        build_index() 
     app.run(debug=True, port=5005)
